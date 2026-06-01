@@ -1,41 +1,3 @@
-# from fastapi import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
-# from .config import settings
-# from .modules.auth.api import router as auth_router
-# from .database import engine
-# from .modules.auth.models import Utilisateur  # Import pour créer les tables SQLAlchemy
-
-# # Créer les tables SQLAlchemy (si elles n'existent pas déjà)
-# # Note: Normalement les tables sont créées par init_db.py
-# # Base.metadata.create_all(bind=engine)
-
-# app = FastAPI(
-#     title=settings.APP_NAME,
-#     description="API pour la gestion prédictive des surestaries",
-#     version="1.0.0"
-# )
-
-# # Configuration CORS
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=settings.BACKEND_CORS_ORIGINS,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# # Inclusion des routers
-# app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
-
-# @app.get("/")
-# async def root():
-#     return {"message": "Bienvenue sur l'API Surestaries", "status": "running"}
-
-# @app.get("/health")
-# async def health_check():
-#     return {"status": "healthy"}
-
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
@@ -66,6 +28,14 @@ app.add_middleware(
 # Inclusion des routers
 from .modules.auth.api import router as auth_router
 app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
+
+# Puis après app.include_router(auth_router...) pour les users
+from .modules.users.api import router as users_router
+app.include_router(users_router, prefix=settings.API_V1_PREFIX)
+
+# Ajouter cette ligne après les autres include_router pour le dashboard
+from .modules.dashboard.api import router as dashboard_router
+app.include_router(dashboard_router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 async def root():
