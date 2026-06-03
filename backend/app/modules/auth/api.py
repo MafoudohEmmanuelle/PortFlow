@@ -14,14 +14,13 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     """Connexion utilisateur avec email et mot de passe"""
     auth_service = AuthService(db)
     result = auth_service.login(request.email, request.mot_de_passe)
-    
     if not result:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email ou mot de passe incorrect",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+     
     return result
 
 @router.post("/logout")

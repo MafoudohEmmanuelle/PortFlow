@@ -1,0 +1,57 @@
+/* frontend/css/pages/dashboard-acheteur.css */
+/* Styles spécifiques au dashboard acheteur */
+
+/* En-tête avec recherche */
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-input {
+    padding: 8px 16px;
+    border: 1px solid #E0E0E0;
+    border-radius: 40px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    width: 220px;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #D32F2F;
+    box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.1);
+}
+
+/* Date d'échéance proche */
+.deadline-warning {
+    color: #D32F2F;
+    font-weight: 600;
+}
+
+/* Carte des dossiers */
+.dossier-row {
+    transition: background 0.2s;
+}
+
+.dossier-row:hover {
+    background-color: #FEF9F9;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    .btn-red {
+        width: 100%;
+        justify-content: center;
+    }
+}
