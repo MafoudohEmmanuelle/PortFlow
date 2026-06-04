@@ -23,22 +23,22 @@ class ArmateurUpdate(BaseModel):
 
 class DocumentCreate(BaseModel):
     nom: str
-    description: Optional[str] = None
+    responsable: str
     code: Optional[str] = None
 
 class DocumentInfo(BaseModel):
     id: int
     nom: str
-    description: Optional[str] = None
+    responsable: Optional[str]=None
     code: Optional[str] = None
     actif: bool
-    date_creation: datetime
+    date_creation: Optional[datetime]=None
 
     class Config:
         from_attributes = True
 
 class DocumentUpdate(BaseModel):
     nom: Optional[str] = None
-    description: Optional[str] = None
+    responsable: Optional[str] = None
     code: Optional[str] = None
     actif: Optional[bool] = None

@@ -1,13 +1,14 @@
-from fastapi import FastAPI
-from pydantic_settings import BaseSettings, Fields
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    app_name: str = "PortFlow"
-    debug: bool = False
-    database_url: str = Fields(..., env="DATABASE_URL")
-
+    DATABASE_URL: str
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    APP_NAME: str = "PortFlow"
+    API_V1_PREFIX: str = "/api/v1"
+    
     class Config:
         env_file = ".env"
-        env_file_encoding = "utf-8"
-    
+        case_sensitive = True
 settings = Settings()

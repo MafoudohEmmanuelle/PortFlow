@@ -1,6 +1,4 @@
 from sqlalchemy.orm import Session
-
-from backend.app.core.security import decode_token
 from .models import Armateur, Document
 from .schemas import ArmateurCreate, DocumentCreate, ArmateurUpdate, DocumentUpdate
 from app.modules.auth.models import Utilisateur
@@ -19,11 +17,11 @@ class ArmateurService:
         """Récupère un armateur par ID"""
         return self.db.query(Armateur).filter(Armateur.id == armateur_id, Armateur.actif == True).first()
     
-    def create_armateur(self, current_user: Utilisateur, armateur: ArmateurCreate):
+    def create_armateur(self, armateur: ArmateurCreate, current_user: Utilisateur):
         """Crée un nouvel armateur(seulement un admin)"""
         if current_user.role != "admin":
             raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Seuls les administrateurs peuvent créer des armateurs")
-        existing_armateur= self.db(Armateur).filter(Armateur.nom==armateur.nom).first()
+        existing_armateur= self.db.query(Armateur).filter(Armateur.nom==armateur.nom).first()
         if existing_armateur:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Armateur déjà existant")
         new_armateur=Armateur(
@@ -35,7 +33,7 @@ class ArmateurService:
         self.db.refresh(new_armateur)
         return new_armateur
 
-    def update_armateur(self,current_user: Utilisateur, armateur_id: int, armateur: ArmateurUpdate):
+    def update_armateur(self, armateur_id: int, armateur: ArmateurUpdate,current_user: Utilisateur):
         """Met à jour un armateur existant"""
         if current_user.role != "admin":
             raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Seuls les administrateurs peuvent mettre à jour des armateurs")
@@ -74,7 +72,7 @@ class DocumentService:
         """Récupère un document par ID"""
         return self.db.query(Document).filter(Document.id == document_id, Document.actif == True).first()
     
-    def create_document(self, current_user: Utilisateur, document: DocumentCreate):
+    def create_document(self, document: DocumentCreate, current_user: Utilisateur):
         """Crée un nouveau document"""
         if current_user.role != "admin":
             raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Seuls les administrateurs peuvent créer des documents")
@@ -82,14 +80,16 @@ class DocumentService:
         if existing_document:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Document déjà existant")
         new_document = Document(
-            nom=document.nom
+            nom=document.nom,
+            responsable=document.responsable,
+            code=document.code
         )
         self.db.add(new_document)
         self.db.commit()
         self.db.refresh(new_document)
         return new_document
     
-    def update_document(self, current_user: Utilisateur, document_id: int, document: DocumentCreate):
+    def update_document(self, document_id: int, document: DocumentCreate, current_user: Utilisateur):
         """Met à jour un document existant"""
         if current_user.role != "admin":
             raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Seuls les administrateurs peuvent mettre à jour des documents")
@@ -97,13 +97,19 @@ class DocumentService:
         if not existing_document:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document non trouvé")
         
-        existing_document.nom = document.nom
-        
+        if document.nom is not None:
+            existing_document.nom = document.nom
+
+        if document.responsable is not None:
+            existing_document.responsable = document.responsable
+
+        if document.code is not None:
+            existing_document.code = document.code  
         self.db.commit()
         self.db.refresh(existing_document)
         return existing_document
     
-    def delete_document(self, current_user: Utilisateur, document_id: int):
+    def delete_document(self, document_id: int, current_user: Utilisateur):
         """Supprime un document (soft delete)"""
         if current_user.role != "admin":
             raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Seuls les administrateurs peuvent supprimer des documents")

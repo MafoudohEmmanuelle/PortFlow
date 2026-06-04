@@ -27,13 +27,17 @@ def delete_armateur(armateur_id: int, db: Session = Depends(get_db), current_use
     return None
 
 @router.get("/armateurs/{armateur_id}", response_model=ArmateurInfo)
-def info_armateur(armateur_id: int, db:Session= Depends(get_db)):
+def info_armateur(armateur_id: int, db:Session= Depends(get_db),current_user: Utilisateur = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Utilisateur non authentifé")
     armateur_service=ArmateurService(db)
     result= armateur_service.get_armateur_by_id(armateur_id)
     return result
 
 @router.get("/armateurs", response_model=list[ArmateurInfo])
-def list_armateurs(db:Session= Depends(get_db)):
+def list_armateurs(db:Session= Depends(get_db), current_user: Utilisateur = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Utilisateur non authentifé")
     armateur_service=ArmateurService(db)
     result= armateur_service.get_armateurs()
     return result
@@ -57,13 +61,17 @@ def delete_document(document_id: int, db: Session = Depends(get_db), current_use
     return None
 
 @router.get("/documents/{document_id}", response_model=DocumentInfo)
-def info_document(document_id: int, db:Session= Depends(get_db)):
+def info_document(document_id: int, db:Session= Depends(get_db), current_user: Utilisateur = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Utilisateur non authentifé")
     document_service=DocumentService(db)
     result= document_service.get_document_by_id(document_id)
     return result  
 
 @router.get("/documents", response_model=list[DocumentInfo])
-def list_documents(db:Session= Depends(get_db)):
+def list_documents(db:Session= Depends(get_db), current_user: Utilisateur = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Utilisateur non authentifé")
     document_service=DocumentService(db)
     result= document_service.get_documents()
     return result

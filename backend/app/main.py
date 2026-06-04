@@ -4,8 +4,11 @@ from .config import settings
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="API pour la gestion prédictive des surestaries",
-    version="1.0.0"
+    description="APP pour la gestion prédictive des surestaries",
+    version="1.0.0",
+    swagger_ui_parameters={
+        "persistAuthorization": True,  # Garde le token après rafraîchissement
+    }
 )
 
 # Parser les origines CORS depuis le .env
@@ -36,6 +39,9 @@ app.include_router(users_router, prefix=settings.API_V1_PREFIX)
 # Ajouter cette ligne après les autres include_router pour le dashboard
 from .modules.dashboard.api import router as dashboard_router
 app.include_router(dashboard_router, prefix=settings.API_V1_PREFIX)
+
+from .modules.referentiels.api import router as referentiels_router
+app.include_router(referentiels_router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 async def root():
