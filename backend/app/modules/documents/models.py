@@ -2,8 +2,8 @@ from sqlalchemy.sql import func
 from ...database import Base
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
 
-class DocumentDossier(Base):
-    __tablename__ = "document_dossier"
+class DossierDocument(Base):
+    __tablename__ = "dossier_document"
     
     id = Column(Integer, primary_key=True)
     dossier_id = Column(Integer, ForeignKey("dossiers_importation.id"), nullable=False)

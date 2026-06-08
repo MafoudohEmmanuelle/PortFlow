@@ -1,0 +1,293 @@
+from datetime import timedelta, datetime,date
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from .models import DossierImportation, StatutDossier
+from app.modules.referentiels.models import Armateur,Document
+from app.modules.documents.models import DossierDocument
+from app.modules.auth.models import Utilisateur
+from app.modules.documents.service import DossierDocumentService
+from .schemas import DossierCreate,DossierUpdate,DossierSortiePortUpdate,DossierArriveeUpdate,DossierResponse
+from typing import List, Optional
+
+class DossierImportationService():
+    def __init__(self, db:Session):
+        self.db=db
+    
+    def _check_armateur_exist(self, armateur_id:int)->bool:
+        armateur=self.db.query(Armateur).filter(Armateur.id==armateur_id, Armateur.actif==True).first()
+        if not armateur:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"L'armateur {armateur_id} n'existe pas")
+        return True
+    
+    def _check_dossier_exists(self, dossier_id: int) -> DossierImportation:
+        """Vérifie qu'un dossier existe"""
+        dossier = self.db.query(DossierImportation).filter(
+            DossierImportation.id == dossier_id
+        ).first()
+        if not dossier:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Dossier {dossier_id} non trouvé"
+            )
+        return dossier
+    
+    def _update_statut(self, dossier: DossierImportation) -> str:
+        # Conversion sécurisée
+        date_arrivee = dossier.date_arrivee
+        date_sortie = dossier.date_sortie_port
+        if isinstance(date_arrivee, datetime):
+            date_arrivee = date_arrivee.date()
+
+        if isinstance(date_sortie, datetime):
+            date_sortie = date_sortie.date()
+
+        # 1. Pas encore parti
+        if not dossier.date_depart:
+            return StatutDossier.EN_ATTENTE.value
+
+        # 2. Parti mais pas encore arrivé
+        if dossier.date_depart and not dossier.date_arrivee:
+            return StatutDossier.DEPART.value
+
+        # 3. Arrivé mais pas sorti
+        if dossier.date_arrivee and not dossier.date_sortie_port:
+            fin_delai = date_arrivee + timedelta(days=dossier.delai_franchise_jours)
+
+            if date.today() > fin_delai:
+                return StatutDossier.ARRIVEE_SURESTARIES.value
+
+            return StatutDossier.ARRIVEE.value
+
+        # 4. Sorti
+        if dossier.date_sortie_port:
+            fin_delai = date_arrivee + timedelta(days=dossier.delai_franchise_jours)
+
+            if date_sortie > fin_delai:
+                return StatutDossier.SORTIE_SURESTARIES.value
+
+            return StatutDossier.SORTIE.value
+
+        return dossier.statut
+    
+    def _check_bl_unique(self, numero_bl: str, exclude_dossier_id: Optional[int] = None) -> bool:
+        """Vérifie que le numéro BL est unique"""
+        query = self.db.query(DossierImportation).filter(
+            DossierImportation.numero_bl == numero_bl
+        )
+        if exclude_dossier_id:
+            query = query.filter(DossierImportation.id != exclude_dossier_id)
+        
+        existing = query.first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Un dossier avec le numéro BL '{numero_bl}' existe déjà"
+            )
+        return True
+   
+    def create_dossier(self,dossier:DossierCreate,current_user: Utilisateur )->DossierImportation:
+        self._check_bl_unique(dossier.numero_bl)
+        self._check_armateur_exist(dossier.armateur_id)
+        new_dossier_importation= DossierImportation(
+            numero_bl= dossier.numero_bl,
+            fournisseur= dossier.fournisseur,
+            armateur_id= dossier.armateur_id,
+            utilisateur_id= current_user.id,
+            delai_franchise_jours= dossier.delai_franchise_jours,
+            eta_initial= dossier.eta_initiale,
+            statut= StatutDossier.EN_ATTENTE.value
+        )
+        self.db.add(new_dossier_importation)
+        self.db.flush()
+
+        doc_service= DossierDocumentService(self.db)
+        doc_service.save_dossier_documents(new_dossier_importation.id, dossier.documents)
+
+        self.db.commit()
+        self.db.refresh(new_dossier_importation)
+
+        return new_dossier_importation
+    
+    def get_dossier(self, dossier_id:int, current_user: Utilisateur)->DossierImportation:
+        dossier= self._check_dossier_exists(dossier_id)
+        if current_user.role!="admin" and dossier.utilisateur_id != current_user.id:
+            raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Vous n'avez pas accès à ce dossier")
+        
+        return dossier
+    
+    def get_dossiers(self, current_user:Utilisateur, skip:0, limit: 100, statut: Optional[str]=None)-> List[DossierImportation]:
+        query= self.db.query(DossierImportation)
+        if current_user.role != "admin":
+            query= query.filter(DossierImportation.utilisateur_id==current_user.id)
+        
+        if statut:
+            query= query.filter(DossierImportation.statut== statut)
+        
+        return query.order_by (DossierImportation.date_creation.desc()).offset(skip).limit(limit).all()
+    
+    def update_dossier(
+        self, 
+        dossier_id: int, 
+        update_data: DossierUpdate, 
+        current_user: Utilisateur
+    ) -> DossierImportation:
+        """Met à jour un dossier existant"""
+        dossier = self._check_dossier_exists(dossier_id)
+        
+        # Vérifier les droits
+        if current_user.role != "admin" and dossier.utilisateur_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Vous n'avez pas accès à ce dossier"
+            )
+        if update_data.numero_bl is not None and update_data.numero_bl != dossier.numero_bl:
+            self._check_bl_unique(update_data.numero_bl, exclude_dossier_id=dossier_id)
+            dossier.numero_bl = update_data.numero_bl
+        # Mettre à jour les champs
+        if update_data.numero_bl is not None:
+            dossier.numero_bl = update_data.numero_bl
+        if update_data.fournisseur is not None:
+            dossier.fournisseur = update_data.fournisseur
+        if update_data.armateur_id is not None:
+            self._check_armateur_exists(update_data.armateur_id)
+            dossier.armateur_id = update_data.armateur_id
+        if update_data.delai_franchise_jours is not None:
+            dossier.delai_franchise_jours = update_data.delai_franchise_jours
+        
+        # Mettre à jour le statut
+        dossier.statut = self._update_statut(dossier)
+        
+        self.db.commit()
+        self.db.refresh(dossier)
+        
+        # Mettre à jour les documents si nécessaire
+        if update_data.documents is not None:
+            doc_service = DossierDocumentService(self.db)
+            # Supprimer les anciennes associations et recréer
+            existing = self.db.query(DossierDocument).filter(
+                DossierDocument.dossier_id == dossier_id
+            ).delete()
+            doc_service.save_dossier_documents(dossier_id, update_data.documents)
+        
+        return dossier
+    
+    def update_arrivee(
+        self, 
+        dossier_id: int, 
+        arrivee_data: DossierArriveeUpdate,
+        current_user: Utilisateur
+    ) -> DossierImportation:
+        """Marque l'arrivée de la marchandise"""
+        dossier = self._check_dossier_exists(dossier_id)
+        
+        # Vérifier les droits
+        if current_user.role != "admin" and dossier.utilisateur_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Vous n'avez pas accès à ce dossier"
+            )
+        
+        # Vérifier que le départ a été enregistré
+        if not dossier.date_depart:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible d'enregistrer l'arrivée : le départ n'a pas encore été enregistré"
+            )
+        
+        dossier.date_arrivee = arrivee_data.date_arrivee
+        dossier.statut = self._update_statut(dossier)
+        
+        self.db.commit()
+        self.db.refresh(dossier)
+        
+        return dossier
+    
+    def update_sortie(
+        self, 
+        dossier_id: int, 
+        sortie_data: DossierSortiePortUpdate,
+        current_user: Utilisateur
+    ) -> DossierImportation:
+        """Marque la sortie du port"""
+        dossier = self._check_dossier_exists(dossier_id)
+        
+        # Vérifier les droits
+        if current_user.role != "admin" and dossier.utilisateur_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Vous n'avez pas accès à ce dossier"
+            )
+        
+        # Vérifier que l'arrivée a été enregistrée
+        if not dossier.date_arrivee:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible d'enregistrer la sortie : l'arrivée n'a pas encore été enregistrée"
+            )
+        
+        dossier.date_sortie_port = sortie_data.date_sortie_port
+        dossier.statut = self._update_statut(dossier)
+        
+        self.db.commit()
+        self.db.refresh(dossier)
+        
+        return dossier
+    
+    def update_depart(
+        self, 
+        dossier_id: int, 
+        date_depart: datetime,
+        current_user: Utilisateur
+    ) -> DossierImportation:
+        """Enregistre la date de départ"""
+        dossier = self._check_dossier_exists(dossier_id)
+        
+        # Vérifier les droits
+        if current_user.role != "admin" and dossier.utilisateur_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Vous n'avez pas accès à ce dossier"
+            )
+        
+        dossier.date_depart = date_depart
+        dossier.statut = self._update_statut(dossier)
+        
+        self.db.commit()
+        self.db.refresh(dossier)
+        
+        return dossier
+    
+    # backend/app/modules/dossiers/service.py
+
+def delete_dossier(
+    self, 
+    dossier_id: int, 
+    current_user: Utilisateur
+) -> dict:
+    """Supprime un dossier et toutes ses associations (admin uniquement)"""
+    
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seuls les administrateurs peuvent supprimer des dossiers"
+        )
+    
+    # Vérifier que le dossier existe
+    dossier = self._check_dossier_exists(dossier_id)
+    
+    #  1. Supprimer les associations dossier-document
+    from app.modules.documents.models import DocumentDossier
+    
+    deleted_associations = self.db.query(DocumentDossier).filter(
+        DocumentDossier.dossier_id == dossier_id
+    ).delete()
+    
+    # 2. Supprimer le dossier
+    self.db.delete(dossier)
+    self.db.commit()
+    
+    return {
+        "message": f"Dossier {dossier_id} supprimé avec succès",
+        "associations_supprimees": deleted_associations
+    }
+        

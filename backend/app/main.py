@@ -43,6 +43,12 @@ app.include_router(dashboard_router, prefix=settings.API_V1_PREFIX)
 from .modules.referentiels.api import router as referentiels_router
 app.include_router(referentiels_router, prefix=settings.API_V1_PREFIX)
 
+from .modules.documents.api import router as dossier_document_router
+app.include_router(dossier_document_router, prefix=settings.API_V1_PREFIX)
+
+from .modules.dossiers.api import router as dossier_importation_router
+app.include_router(dossier_importation_router, prefix=settings.API_V1_PREFIX) 
+
 @app.get("/")
 async def root():
     return {"message": "Bienvenue sur l'API PortFlow", "status": "running"}
