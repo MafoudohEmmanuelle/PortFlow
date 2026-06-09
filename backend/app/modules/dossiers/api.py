@@ -67,15 +67,32 @@ def get_dossiers(
     
     # Récupérer les documents pour chaque dossier
     doc_service = DossierDocumentService(db)
+
+    #ligne ajoutée
+    from app.modules.referentiels.models import Armateur
     result = []
     
     for dossier in dossiers:
+
+        #lignes ajoutées pour le nom de l'armateur
+        # Récupérer le nom de l'armateur CORRECTEMENT
+        armateur_nom = None
+        if dossier.armateur_id:
+            # Méthode 1 : requête directe
+            armateur = db.query(Armateur).filter(Armateur.id == dossier.armateur_id).first()
+            if armateur:
+                armateur_nom = armateur.nom
+                print(f"Armateur trouvé: ID={dossier.armateur_id}, Nom={armateur_nom}")  # Debug
+            else:
+                print(f"Armateur NON trouvé: ID={dossier.armateur_id}")  # Debug
+
         documents = doc_service.get_dossier_documents(dossier.id)
         result.append({
             "id": dossier.id,
             "numero_bl": dossier.numero_bl,
             "fournisseur": dossier.fournisseur,
             "armateur_id": dossier.armateur_id,
+            "armateur_nom": armateur_nom, #a ete ajouté
             "delai_franchise_jours": dossier.delai_franchise_jours,
             "statut": dossier.statut,
             "date_creation": dossier.date_creation,

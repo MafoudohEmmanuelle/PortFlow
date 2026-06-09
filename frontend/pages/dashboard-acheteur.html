@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortFlow | Acheteur</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/components/sidebar.css">
+    <link rel="stylesheet" href="../css/pages/dashboard_acheteur.css">
+    <link rel="stylesheet" href="../css/pages/dashboard_admin.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-area">
+            <h2>PortFlow</h2>
+            <p>Gestion des surestaries</p>
+        </div>
+        
+        <div class="user-info-sidebar">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-name" id="userName">Chargement...</div>
+            <div class="user-role" id="userRole"></div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-item active" id="navDashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" id="navDossiers">
+                <i class="fas fa-boxes"></i>
+                <span>Dossiers</span>
+            </div>
+            <div class="nav-item" id="navAlertes">
+                <i class="fas fa-bell"></i>
+                <span>Alertes</span>
+            </div>
+            <div class="nav-item" id="navRapports">
+                <i class="fas fa-chart-line"></i>
+                <span>Rapports</span>
+            </div>
+        </div>
+        
+        <div class="bottom-info">
+            <i class="fas fa-shield-alt"></i> PortFlow v1.0<br>
+            © 2024 - Tous droits réservés
+        </div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <div class="top-header">
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            <button class="logout-btn" onclick="Auth.logout()">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </div>
+        
+        <!-- Vue Dashboard -->
+        <div id="dashboardView">
+            <div id="welcomeMessage">
+                <div class="loading">Chargement...</div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Mes dossiers</h4>
+                    <div class="stat-value" id="myDossiersCount">0</div>
+                    <div class="stat-sub">en cours</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Alertes</h4>
+                    <div class="stat-value stat-critical" id="myAlertsCount">0</div>
+                    <div class="stat-sub">à traiter</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Docs manquants</h4>
+                    <div class="stat-value" id="missingDocsCount">0</div>
+                    <div class="stat-sub">sur mes dossiers</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Prochain délai</h4>
+                    <div class="stat-value" id="nextDeadline">-</div>
+                    <div class="stat-sub">avant franchise</div>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title">📋 Mes dossiers récents</span>
+                    <div class="header-actions">
+                        <form class="search-container">
+                            <input type="search" name="q" placeholder="Rechercher un dossier" class="search-input" />
+                            <button type="submit" class="search-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </button>
+                        </form>
+                        <button class="btn-red" id="newDossierBtn"><i class="fas fa-plus"></i> Nouveau</button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>N° Commande</th><th>Fournisseur</th><th>ETA</th><th>Statut</th><th></th>
+                        </thead>
+                        <tbody id="dossiersTableBody">
+                            <tr><td colspan="5">Chargement...</td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title">⚠️ Alertes récentes</span>
+                </div>
+                <div class="header-actions" style="position: absolute; right: 40px;">
+                    <button class="btn-red" id="voirAlertes">Voir toutes</button>
+                </div>
+                <div id="alertsList" class="alert-list">Chargement...</div>
+            </div>
+        </div>
+
+        <!-- Vue Dossiers -->
+        <div id="dossiersView" style="display:none;">
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title">📂 Tous mes dossiers</span>
+                    <button class="btn-red" id="allNewDossierBtn"><i class="fas fa-plus"></i> Nouveau</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>N° Commande</th><th>Fournisseur</th><th>ETA</th><th>Documents</th><th></th>
+                        </thead>
+                        <tbody id="allDossiersBody">
+                            <tr><td colspan="5">Chargement...</td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue Alertes -->
+        <div id="alertesView" style="display:none;">
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title">🔔 Toutes mes alertes</span>
+                </div>
+                <div id="allAlertsList" class="alert-list">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/api/client.js"></script>
+    <script src="../js/api/auth.js"></script>
+    <script src="../js/api/dashboard.js"></script>
+    <script src="../js/utils/auth.js"></script>
+    <script src="../js/utils/sidebar.js"></script>
+    <script src="../js/modules/dashboard/dashboard-acheteur.js"></script>
+    
+    <script>
+        // Vérifier l'authentification
+        if (!Auth.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        if (Auth.isAdmin()) {
+            window.location.href = 'dashboard-admin.html';
+        }
+        
+        // Modifier loadAcheteurStats pour ne pas écraser le HTML
+        const originalLoadAcheteurStats = loadAcheteurStats;
+        window.loadAcheteurStats = async function() {
+            const result = await DashboardAPI.getAcheteurStats();
+            if (result.ok && result.data) {
+                const welcomeContainer = document.getElementById('welcomeMessage');
+                if (welcomeContainer) {
+                    welcomeContainer.innerHTML = `
+                        <div class="welcome-card">
+                            <h2>${result.data.bienvenue}</h2>
+                            <p><strong>Email:</strong> ${result.data.email}</p>
+                            <p><strong>Rôle:</strong> ${result.data.role}</p>
+                        </div>
+                    `;
+                }
+            }
+        };
+        
+        // Navigation sidebar
+        console.log('Script de navigation chargé');
+        document.getElementById('navDossiers')?.addEventListener('click', () => {
+            window.location.href = 'dossier/list.html';
+        });
+        document.getElementById('navArmateurs')?.addEventListener('click', () => {
+            window.location.href = 'armateurs/list.html';
+        });
+        document.getElementById('navDocuments')?.addEventListener('click', () => {
+            window.location.href = 'documents/list.html';
+        });
+        document.getElementById('navRapports')?.addEventListener('click', () => {
+            window.location.href = 'rapports/index.html';
+        });
+        document.getElementById('navProfile')?.addEventListener('click', () => {
+            window.location.href = 'profile/index.html';
+        });
+    </script>
+</body>
+</html>

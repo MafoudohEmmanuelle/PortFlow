@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortFlow | Armateurs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/armateur-list.css">
+  
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-area">
+            <br>
+            <br>
+            <h2>PortFlow</h2>
+            <p>Gestion des surestaries</p>
+        </div>
+        <div class="user-info-sidebar">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-name" id="userName">Chargement...</div>
+            <div class="user-role" id="userRole"></div>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+            <div class="nav-item" id="navUsers"><i class="fas fa-users"></i><span>Utilisateurs</span></div>
+            <div class="nav-item" id="navDossiers"><i class="fas fa-boxes"></i><span>Dossiers</span></div>
+            <div class="nav-item active" id="navArmateurs"><i class="fas fa-ship"></i><span>Armateurs</span></div>
+            <div class="nav-item" id="navDocuments"><i class="fas fa-file-alt"></i><span>Documents</span></div>
+            <div class="nav-item" id="navAlertes"><i class="fas fa-bell"></i><span>Alertes</span></div>
+            <div class="nav-item" id="navRapports"><i class="fas fa-chart-line"></i><span>Rapports</span></div>
+        </div>
+        <div class="bottom-info">
+            <i class="fas fa-shield-alt"></i> PortFlow v1.0<br>
+            © 2024 - Tous droits réservés
+        </div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <div class="top-header">
+            <h1 class="page-title">Gestion des armateurs</h1>
+            <button class="btn-add" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        </div>
+        
+        <div class="page-header">
+            <h2><i class="fas fa-ship"></i> Liste des armateurs</h2>
+            <button class="btn-add" id="btnAddArmateur"><i class="fas fa-plus"></i> Ajouter un armateur</button>
+        </div>
+        
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>ID</th><th>Nom</th><th>Lien de tracking</th><th>Statut</th><th>Date création</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="armateursTableBody">
+                    <tr><td colspan="6" class="loading">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal Ajout/Modification -->
+    <div id="armateurModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Ajouter un armateur</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="armateurForm">
+                <input type="hidden" id="armateurId">
+                <div class="form-group">
+                    <label>Nom *</label>
+                    <input type="text" id="armateurNom" required>
+                </div>
+                <div class="form-group">
+                    <label>Lien de tracking</label>
+                    <input type="url" id="armateurLien" placeholder="https://...">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/auth.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/utils/sidebar.js"></script>
+    
+    <script>
+        // Vérifier authentification et droits admin
+        if (!Auth.isAuthenticated()) { window.location.href = '../login.html'; }
+        if (!Auth.isAdmin()) { window.location.href = '../dashboard-acheteur.html'; }
+        
+        let currentArmateurs = [];
+        
+        async function loadArmateurs() {
+            const tbody = document.getElementById('armateursTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">Chargement...</td></tr>';
+            
+            const result = await ReferentielsAPI.getArmateurs();
+            
+            if (result.ok && result.data) {
+                currentArmateurs = result.data;
+                displayArmateurs(currentArmateurs);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-message">Erreur de chargement</td></tr>';
+            }
+        }
+        
+        function displayArmateurs(armateurs) {
+            const tbody = document.getElementById('armateursTableBody');
+            if (!armateurs.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-message">Aucun armateur</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = armateurs.map(a => `
+                <tr>
+                    <td>${a.id}</td>
+                    <td><strong>${escapeHtml(a.nom)}</strong></td>
+                    <td>${a.lien_tracking ? `<a href="${a.lien_tracking}" target="_blank">${a.lien_tracking.substring(0, 30)}...</a>` : '-'}</td>
+                    <td><span class="${a.actif ? 'badge-active' : 'badge-inactive'}">${a.actif ? 'Actif' : 'Inactif'}</span></td>
+                    <td>${formatDate(a.date_creation)}</td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="editArmateur(${a.id})"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteArmateur(${a.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('fr-FR');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function openModal(armateur = null) {
+            const modal = document.getElementById('armateurModal');
+            const title = document.getElementById('modalTitle');
+            const idField = document.getElementById('armateurId');
+            const nomField = document.getElementById('armateurNom');
+            const lienField = document.getElementById('armateurLien');
+            
+            if (armateur) {
+                title.textContent = 'Modifier l\'armateur';
+                idField.value = armateur.id;
+                nomField.value = armateur.nom;
+                lienField.value = armateur.lien_tracking || '';
+            } else {
+                title.textContent = 'Ajouter un armateur';
+                idField.value = '';
+                nomField.value = '';
+                lienField.value = '';
+            }
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('armateurModal').classList.remove('active');
+        }
+        
+        async function editArmateur(id) {
+            const armateur = currentArmateurs.find(a => a.id === id);
+            if (armateur) openModal(armateur);
+        }
+        
+        async function deleteArmateur(id) {
+            if (!confirm('Supprimer cet armateur ?')) return;
+            const result = await ReferentielsAPI.deleteArmateur(id);
+            if (result.ok) {
+                loadArmateurs();
+                showNotification('Armateur supprimé', 'success');
+            } else {
+                showNotification('Erreur lors de la suppression', 'error');
+            }
+        }
+        
+        async function saveArmateur(event) {
+            event.preventDefault();
+            const id = document.getElementById('armateurId').value;
+            const data = {
+                nom: document.getElementById('armateurNom').value,
+                lien_tracking: document.getElementById('armateurLien').value || null
+            };
+            
+            let result;
+            if (id) {
+                result = await ReferentielsAPI.updateArmateur(id, data);
+            } else {
+                result = await ReferentielsAPI.createArmateur(data);
+            }
+            
+            if (result.ok) {
+                closeModal();
+                loadArmateurs();
+                showNotification(id ? 'Armateur modifié' : 'Armateur créé', 'success');
+            } else {
+                showNotification(result.data?.detail || 'Erreur', 'error');
+            }
+        }
+        
+        function showNotification(message, type) {
+            const notif = document.createElement('div');
+            notif.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type === 'success' ? '#10b981' : '#ef4444'};color:white;padding:12px 20px;border-radius:10px;z-index:3000;`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+        
+        // Navigation
+        document.getElementById('navDashboard').onclick = () => window.location.href = '../dashboard-admin.html';
+        document.getElementById('navDossiers').onclick = () => window.location.href = '../dossier/list.html';
+        document.getElementById('navDocuments').onclick = () => window.location.href = '../documents/list.html';
+        document.getElementById('navRapports').onclick = () => window.location.href = '../rapports/index.html';
+        document.getElementById('btnAddArmateur').onclick = () => openModal();
+        document.getElementById('armateurForm').onsubmit = saveArmateur;
+        
+        // Initialisation
+        loadArmateurs();
+    </script>
+</body>
+</html>

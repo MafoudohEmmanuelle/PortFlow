@@ -1,0 +1,135 @@
+        /* * { margin: 0; padding: 0; box-sizing: border-box; } */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #797a7a;
+        }
+        .header {
+            background: #373938;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 1.5rem; }
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        } 
+/* Buttons */
+.btn-red {
+    background-color: #D32F2F;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-weight: 600;
+    height: 1cm;
+    cursor: pointer;
+}
+
+.btn-red:hover {
+    background-color: #B71C1C;
+}
+
+/* Tables */
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th, .users-table td {
+    text-align: left;
+    padding: 12px 8px;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.users-table th {
+    color: #757575;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+        .logout-btn:hover { background: #b91c1c; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .welcome-card {
+            background: linear-gradient(135deg, #e47764 0%,#d12020 100%);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .welcome-card h2 { margin-bottom: 15px; font-size: 1.8rem; }
+        .welcome-card p { margin: 10px 0; font-size: 1.1rem; }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card h3 { color: #333; margin-bottom: 15px; }
+        .loading { text-align: center; padding: 20px; color: #666; }
+        .error { text-align: center; padding: 20px; color: #dc2626; }
+
+/* Le conteneur principal */
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 500px; /* Limite la largeur sur grand écran */
+  margin: 20px auto;
+  position: relative;
+  border-radius: 50px; /* Bords très arrondis style Google/Pinterest */
+  background-color: #f5f5f7;
+  padding: 5px 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* L'input de recherche */
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 15px;
+  font-size: 16px;
+  color: #333;
+  outline: none; /* Supprime la bordure bleue par défaut du navigateur */
+}
+
+/* Changement de style quand l'utilisateur clique dans le champ (Focus) */
+.search-container:focus-within {
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #0071e3; /* Petite touche de couleur (style Apple) */
+}
+
+/* Le bouton de recherche */
+.search-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6e6e73;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+/* Effet au survol du bouton */
+.search-button:hover {
+  color: #0071e3;
+  transform: scale(1.1); /* Légère animation d'agrandissement */
+}
+
+.header-actions{
+    display: flex;
+}

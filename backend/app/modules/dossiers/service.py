@@ -149,7 +149,7 @@ class DossierImportationService():
         if update_data.fournisseur is not None:
             dossier.fournisseur = update_data.fournisseur
         if update_data.armateur_id is not None:
-            self._check_armateur_exists(update_data.armateur_id)
+            self._check_armateur_exist(update_data.armateur_id)
             dossier.armateur_id = update_data.armateur_id
         if update_data.delai_franchise_jours is not None:
             dossier.delai_franchise_jours = update_data.delai_franchise_jours

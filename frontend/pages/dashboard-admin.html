@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortFlow | Administration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/components/sidebar.css">
+    <link rel="stylesheet" href="../css/pages/dashboard_admin.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-area">
+            <h2>PortFlow</h2>
+            <p>Gestion des surestaries</p>
+        </div>
+        
+        <div class="user-info-sidebar">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-name" id="userName">Chargement...</div>
+            <div class="user-role" id="userRole"></div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-item active" id="navDashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" id="navUsers">
+                <i class="fas fa-users"></i>
+                <span>Utilisateurs</span>
+            </div>
+            <div class="nav-item" id="navDossiers">
+                <i class="fas fa-boxes"></i>
+                <span>Dossiers</span>
+            </div>
+            <div class="nav-item" id="navArmateurs">
+                <i class="fas fa-ship"></i>
+                <span>Armateurs</span>
+            </div>
+            <div class="nav-item" id="navDocuments">
+                <i class="fas fa-file-alt"></i>
+                <span>Documents</span>
+            </div>
+            <div class="nav-item" id="navAlertes">
+                <i class="fas fa-bell"></i>
+                <span>Alertes</span>
+            </div>
+            <div class="nav-item" id="navRapports">
+                <i class="fas fa-chart-line"></i>
+                <span>Rapports</span>
+            </div>
+        </div>
+        
+        <div class="bottom-info">
+            <i class="fas fa-shield-alt"></i> PortFlow v1.0<br>
+            © 2024 - Tous droits réservés
+        </div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <div class="top-header">
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            <button class="logout-btn" onclick="Auth.logout()">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </div>
+        
+        <!-- Vue Dashboard -->
+        <div id="dashboardView">
+            <div class="stats-grid" id="statsContainer">
+                <div class="loading">Chargement des statistiques...</div>
+            </div>
+            
+            <div class="card">
+                <h2>Gestion des utilisateurs</h2>
+                <button class="btn-add" onclick="showAddUserForm()">
+                    <i class="fas fa-plus"></i> Ajouter un utilisateur
+                </button>
+                
+                <div class="table-wrapper">
+                    <table class="users-table">
+                        <thead>
+                            <tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="6" class="loading">Chargement...</td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Dossiers en cours</h4>
+                    <div class="stat-value" id="totalDossiers">0</div>
+                    <div class="stat-sub">ce mois</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Alertes critiques</h4>
+                    <div class="stat-value stat-critical" id="alertesCritiques">0</div>
+                    <div class="stat-sub">documents manquants</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Taux surestaries</h4>
+                    <div class="stat-value" id="tauxSurestaries">0%</div>
+                    <div class="stat-sub">objectif &lt;5%</div>
+                </div>
+            </div>
+            
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title">📋 Derniers dossiers</span>
+                    <button class="btn-outline" id="voirDossiers">Voir tous</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>N° Commande</th><th>Fournisseur</th><th>ETA</th><th>Statut</th><th></th>
+                        </thead>
+                        <tbody id="recentDossiersBody">
+                            <tr><td colspan="5">Chargement...</td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vue Utilisateurs (cachée par défaut) -->
+        <div id="usersView" style="display:none;">
+            <div class="card">
+                <h2>Gestion des utilisateurs</h2>
+                <button class="btn-add" onclick="showAddUserForm()">
+                    <i class="fas fa-plus"></i> Ajouter un utilisateur
+                </button>
+                <div class="table-wrapper">
+                    <table class="users-table">
+                        <thead>
+                            <tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th>
+                        </thead>
+                        <tbody id="usersTableBody2">
+                            <tr><td colspan="6" class="loading">Chargement...</td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulaire modal -->
+        <div id="userForm" class="form-popup hidden">
+            <div class="form-container">
+                <h3 id="userFormTitle">Ajouter un utilisateur</h3>
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" id="userNom" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="userEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <select id="userRole">
+                        <option value="acheteur">Acheteur</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe <span id="passwordRequired" style="color:red;">*</span></label>
+                    <input type="password" id="userPassword" placeholder="Laisser vide pour ne pas modifier">
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="userActif" checked>
+                    <label style="display: inline;">Actif</label>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveUser()">Enregistrer</button>
+                    <button class="btn-cancel" onclick="cancelUserForm()">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/api/client.js"></script>
+    <script src="../js/api/auth.js"></script>
+    <script src="../js/api/users.js"></script>
+    <script src="../js/api/dashboard.js"></script>
+    <script src="../js/utils/auth.js"></script>
+    <script src="../js/utils/sidebar.js"></script>
+    <script src="../js/modules/users/users-list.js"></script>
+    <script src="../js/modules/dashboard/dashboard-admin.js"></script>
+    
+    <script>
+        // Vérifier l'authentification
+        if (!Auth.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        if (!Auth.isAdmin()) {
+            window.location.href = 'dashboard-acheteur.html';
+        }
+        
+        // Dupliquer le tableau des utilisateurs pour la vue Users
+        setInterval(() => {
+            const originalBody = document.getElementById('usersTableBody');
+            const duplicateBody = document.getElementById('usersTableBody2');
+            if (originalBody && duplicateBody && originalBody.innerHTML !== duplicateBody.innerHTML) {
+                duplicateBody.innerHTML = originalBody.innerHTML;
+            }
+        }, 500);
+
+        // Navigation sidebar
+        console.log('Script de navigation chargé');
+        document.getElementById('navDossiers')?.addEventListener('click', () => {
+            window.location.href = 'dossier/list.html';
+        });
+        document.getElementById('navArmateurs')?.addEventListener('click', () => {
+            window.location.href = 'armateurs/list.html';
+        });
+        document.getElementById('navDocuments')?.addEventListener('click', () => {
+            window.location.href = 'documents/list.html';
+        });
+        document.getElementById('navRapports')?.addEventListener('click', () => {
+            window.location.href = 'rapports/index.html';
+        });
+    </script>
+</body>
+</html>

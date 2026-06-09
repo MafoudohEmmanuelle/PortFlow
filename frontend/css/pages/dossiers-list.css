@@ -1,0 +1,177 @@
+/* frontend/css/pages/dossiers-list.css */
+
+/* frontend/css/pages/dossiers-list.css */
+
+/* Importer la même police que les dashboards */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;  /* ← Ajouter cette ligne */
+    background: #f5f7fa;
+}
+
+/* ... reste du CSS existant ... */
+
+.filters-bar {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.filter-group select,
+.filter-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: #e74c3c;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-filter {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-filter:hover { background: #c0392b; }
+
+.btn-reset {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-new {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dossiers-table {
+    width: 100%;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.dossiers-table th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dossiers-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.statut-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.statut-en_cours { background: #fef3c7; color: #d97706; }
+.statut-arrive { background: #d1fae5; color: #059669; }
+.statut-cloture { background: #e5e7eb; color: #4b5563; }
+
+.action-link {
+    color: #e74c3c;
+    cursor: pointer;
+    margin: 0 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 48px;
+    color: #9ca3af;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 48px;
+    color: #6b7280;
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.statut-en_attente { background: #fef3c7; color: #d97706; }
+.statut-depart { background: #dbeafe; color: #2563eb; }
+.statut-arrivee { background: #d1fae5; color: #059669; }
+.statut-sortie { background: #e0e7ff; color: #4338ca; }
+.statut-surestaries { background: #fee2e2; color: #dc2626; }
+.badge-success { background: #d1fae5; color: #059669; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; }
+.badge-warning { background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; }

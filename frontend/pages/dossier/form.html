@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortFlow | Nouveau dossier d'importation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/dossier-form.css">
+    <style>
+        /* Styles supplémentaires pour les checkboxes documents */
+        .documents-section {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+        .documents-section label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+            color: #374151;
+        }
+        .documents-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e5e7eb;
+        }
+        .checkbox-label:hover {
+            background: #fef9f9;
+            border-color: #e74c3c;
+        }
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #e74c3c;
+        }
+        .checkbox-label span {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        .checkbox-label small {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        .error-message, .success-message {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+        .success-message {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-area">
+            <h2>PortFlow</h2>
+            <p>Gestion des surestaries</p>
+        </div>
+        
+        <div class="user-info-sidebar">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-name" id="userName">Chargement...</div>
+            <div class="user-role" id="userRole"></div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-item" id="navDashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </div>
+              <div class="nav-item" id="navUsers" style="display: none;">
+                <i class="fas fa-users"></i>
+                <span>Utilisateurs</span>
+            </div>
+            <div class="nav-item" id="navDossiers">
+                <i class="fas fa-boxes"></i>
+                <span>Dossiers</span>
+            </div>
+            <div class="nav-item" id="navArmateurs" style="display: none;">
+                <i class="fas fa-ship"></i>
+                <span>Armateurs</span>
+            </div>
+            <div class="nav-item" id="navDocuments" style="display: none;">
+                <i class="fas fa-file-alt"></i>
+                <span>Documents</span>
+            </div>
+             <div class="nav-item" id="navAlertes">
+                <i class="fas fa-bell"></i>
+                <span>Alertes</span>
+            </div>
+            <div class="nav-item" id="navRapports">
+                <i class="fas fa-chart-line"></i>
+                <span>Rapports</span>
+            </div>
+        </div>
+        
+        <div class="bottom-info">
+            <i class="fas fa-shield-alt"></i> PortFlow v1.0<br>
+            © 2024 - Tous droits réservés
+        </div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <div class="top-header">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <a href="list.html" style="color: #e74c3c; font-size: 1.5rem; text-decoration: none;" title="Retour à la liste">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="page-title" id="pageTitle">Nouveau dossier d'importation</h1>
+            </div>
+            <button class="logout-btn" onclick="Auth.logout()">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </div>
+        
+        <!-- Formulaire -->
+        <div class="form-card">
+            <form id="dossierForm">
+                <!-- Message d'erreur / succès -->
+                <div id="formError" class="error-message"></div>
+                <div id="formSuccess" class="success-message"></div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="numero_bl">N° BL / Connaissement *</label>
+                        <input type="text" id="numero_bl" class="form-control" required placeholder="Ex: BL2024001">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fournisseur">Fournisseur *</label>
+                        <input type="text" id="fournisseur" class="form-control" required placeholder="Nom du fournisseur">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="armateur_id">Armateur *</label>
+                        <select id="armateur_id" class="form-control" required>
+                            <option value="">Chargement...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eta_initiale">ETA (date d'arrivée prévue) *</label>
+                        <input type="date" id="eta_initiale" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="delai_franchise_jours">Délai de franchise (jours)</label>
+                        <input type="number" id="delai_franchise_jours" class="form-control" value="11" min="1" max="30">
+                    </div>
+                </div>
+                
+                <!-- Documents requis -->
+                <div class="documents-section">
+                    <label><i class="fas fa-file-alt"></i> Documents requis *</label>
+                    <div id="documentsContainer" class="documents-checkboxes">
+                        <div class="loading">Chargement des documents...</div>
+                    </div>
+                    <small style="color: #6b7280; margin-top: 8px; display: block;">Cochez tous les documents qui seront nécessaires pour ce dossier</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="window.location.href='list.html'">Annuler</button>
+                    <button type="submit" class="btn-save" id="submitBtn">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/auth.js"></script>
+    <script src="../../js/api/dossiers.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/api/suivi-documents.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/utils/sidebar.js"></script>
+    <script src="../../js/modules/dossiers/dossier-form.js"></script>
+    
+    <script>
+        // Vérifier l'authentification
+        if (!Auth.isAuthenticated()) {
+            window.location.href = '../login.html';
+        }
+        
+        const isAdmin = Auth.isAdmin();
+        
+        // Afficher/masquer les menus selon le rôle
+        const navArmateurs = document.getElementById('navArmateurs');
+        const navDocuments = document.getElementById('navDocuments');
+        const navUsers = document.getElementById('navUsers');
+        
+        if (navArmateurs) navArmateurs.style.display = isAdmin ? 'flex' : 'none';
+        if (navDocuments) navDocuments.style.display = isAdmin ? 'flex' : 'none';
+        if (navUsers) navUsers.style.display = isAdmin ? 'flex' : 'none';
+        
+        // Navigation sidebar
+        const navDashboard = document.getElementById('navDashboard');
+        if (navDashboard) {
+            navDashboard.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = isAdmin ? '../dashboard-admin.html' : '../dashboard-acheteur.html';
+            };
+        }
+        
+        const navDossiers = document.getElementById('navDossiers');
+        if (navDossiers) {
+            navDossiers.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = 'list.html';
+            };
+        }
+        
+        const navArmateursLink = document.getElementById('navArmateurs');
+        if (navArmateursLink && isAdmin) {
+            navArmateursLink.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = '../armateurs/list.html';
+            };
+        }
+        
+        const navDocumentsLink = document.getElementById('navDocuments');
+        if (navDocumentsLink && isAdmin) {
+            navDocumentsLink.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = '../documents/list.html';
+            };
+        }
+        
+        const navUsersLink = document.getElementById('navUsers');
+        if (navUsersLink && isAdmin) {
+            navUsersLink.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = '../users/list.html';
+            };
+        }
+        
+        const navRapports = document.getElementById('navRapports');
+        if (navRapports) {
+            navRapports.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = '../rapports/index.html';
+            };
+        }
+        
+        const navProfile = document.getElementById('navProfile');
+        if (navProfile) {
+            navProfile.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = '../profile/index.html';
+            };
+        }
+    </script>
+</body>
+</html>
