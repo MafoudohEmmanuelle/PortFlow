@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortFlow | Documents</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/document-list.css">
+  
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-area">
+            <br>
+            <br>
+            <h2>PortFlow</h2>
+            <p>Gestion des surestaries</p>
+        </div>
+        <div class="user-info-sidebar">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-name" id="userName">Chargement...</div>
+            <div class="user-role" id="userRole"></div>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+             <div class="nav-item" id="navUsers">
+                <i class="fas fa-users"></i>
+                <span>Utilisateurs</span>
+            </div>
+            <div class="nav-item" id="navDossiers"><i class="fas fa-boxes"></i><span>Dossiers</span></div>
+            <div class="nav-item" id="navArmateurs"><i class="fas fa-ship"></i><span>Armateurs</span></div>
+            <div class="nav-item active" id="navDocuments"><i class="fas fa-file-alt"></i><span>Documents</span></div>
+            <div class="nav-item" id="navAlertes">
+                <i class="fas fa-bell"></i>
+                <span>Alertes</span>
+            </div>
+            <div class="nav-item" id="navRapports"><i class="fas fa-chart-line"></i><span>Rapports</span></div>
+        </div>
+        <div class="bottom-info">
+            <i class="fas fa-shield-alt"></i> PortFlow v1.0<br>© 2024
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-header">
+            <h1 class="page-title">Gestion des documents</h1>
+            <button class="btn-add" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        </div>
+        
+        <div class="page-header">
+            <h2><i class="fas fa-file-alt"></i> Liste des documents</h2>
+            <button class="btn-add" id="btnAddDocument"><i class="fas fa-plus"></i> Ajouter un document</button>
+        </div>
+        
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>ID</th><th>Nom</th><th>Code</th><th>Responsable</th><th>Statut</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="documentsTableBody">
+                    <tr><td colspan="6" class="loading">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div id="documentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display:flex;justify-content:space-between;">
+                <h3 id="modalTitle">Ajouter un document</h3>
+                <button class="modal-close" onclick="closeModal()" style="background:none;border:none;font-size:1.5rem;">&times;</button>
+            </div>
+            <form id="documentForm">
+                <input type="hidden" id="documentId">
+                <div class="form-group">
+                    <label>Nom *</label>
+                    <input type="text" id="documentNom" required>
+                </div>
+                <div class="form-group">
+                    <label>Code</label>
+                    <input type="text" id="documentCode" placeholder="Ex: BC001">
+                </div>
+                <div class="form-group">
+                    <label>Responsable</label>
+                    <input type="text" id="documentResponsable" placeholder="Service concerné">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/auth.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/utils/sidebar.js"></script>
+    
+    <script>
+        if (!Auth.isAuthenticated()) { window.location.href = '../login.html'; }
+        if (!Auth.isAdmin()) { window.location.href = '../dashboard-acheteur.html'; }
+        
+        let currentDocuments = [];
+        
+        async function loadDocuments() {
+            const tbody = document.getElementById('documentsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">Chargement...</td></tr>';
+            const result = await ReferentielsAPI.getDocuments();
+            if (result.ok && result.data) {
+                currentDocuments = result.data;
+                displayDocuments(currentDocuments);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-message">Erreur de chargement</td></tr>';
+            }
+        }
+        
+        function displayDocuments(docs) {
+            const tbody = document.getElementById('documentsTableBody');
+            if (!docs.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-message">Aucun document</td></tr>';
+                return;
+            }
+            tbody.innerHTML = docs.map(d => `
+                <tr>
+                    <td>${d.id}</td>
+                    <td><strong>${escapeHtml(d.nom)}</strong></td>
+                    <td>${d.code || '-'}</td>
+                    <td>${d.responsable || '-'}</td>
+                    <td><span class="${d.actif ? 'badge-active' : 'badge-inactive'}">${d.actif ? 'Actif' : 'Inactif'}</span></td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="editDocument(${d.id})"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteDocument(${d.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function openModal(doc = null) {
+            const modal = document.getElementById('documentModal');
+            const title = document.getElementById('modalTitle');
+            const idField = document.getElementById('documentId');
+            const nomField = document.getElementById('documentNom');
+            const codeField = document.getElementById('documentCode');
+            const respField = document.getElementById('documentResponsable');
+            
+            if (doc) {
+                title.textContent = 'Modifier le document';
+                idField.value = doc.id;
+                nomField.value = doc.nom;
+                codeField.value = doc.code || '';
+                respField.value = doc.responsable || '';
+            } else {
+                title.textContent = 'Ajouter un document';
+                idField.value = '';
+                nomField.value = '';
+                codeField.value = '';
+                respField.value = '';
+            }
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('documentModal').classList.remove('active');
+        }
+        
+        async function editDocument(id) {
+            const doc = currentDocuments.find(d => d.id === id);
+            if (doc) openModal(doc);
+        }
+        
+        async function deleteDocument(id) {
+            if (!confirm('Supprimer ce document ?')) return;
+            const result = await ReferentielsAPI.deleteDocument(id);
+            if (result.ok) {
+                loadDocuments();
+                showNotification('Document supprimé', 'success');
+            } else {
+                showNotification('Erreur lors de la suppression', 'error');
+            }
+        }
+        
+        async function saveDocument(event) {
+            event.preventDefault();
+            const id = document.getElementById('documentId').value;
+            const data = {
+                nom: document.getElementById('documentNom').value,
+                code: document.getElementById('documentCode').value || null,
+                responsable: document.getElementById('documentResponsable').value || null
+            };
+            
+            let result;
+            if (id) {
+                result = await ReferentielsAPI.updateDocument(id, data);
+            } else {
+                result = await ReferentielsAPI.createDocument(data);
+            }
+            
+            if (result.ok) {
+                closeModal();
+                loadDocuments();
+                showNotification(id ? 'Document modifié' : 'Document créé', 'success');
+            } else {
+                showNotification(result.data?.detail || 'Erreur', 'error');
+            }
+        }
+        
+        function showNotification(message, type) {
+            const notif = document.createElement('div');
+            notif.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type === 'success' ? '#10b981' : '#ef4444'};color:white;padding:12px 20px;border-radius:10px;z-index:3000;`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+        
+        document.getElementById('navDashboard').onclick = () => window.location.href = '../dashboard-admin.html';
+        document.getElementById('navDossiers').onclick = () => window.location.href = '../dossier/list.html';
+        document.getElementById('navArmateurs').onclick = () => window.location.href = '../armateurs/list.html';
+        document.getElementById('navRapports').onclick = () => window.location.href = '../rapports/index.html';
+        document.getElementById('btnAddDocument').onclick = () => openModal();
+        document.getElementById('documentForm').onsubmit = saveDocument;
+        
+        loadDocuments();
+    </script>
+</body>
+</html>
