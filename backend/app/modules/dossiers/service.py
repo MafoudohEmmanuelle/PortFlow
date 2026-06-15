@@ -259,35 +259,86 @@ class DossierImportationService():
     
     # backend/app/modules/dossiers/service.py
 
-def delete_dossier(
-    self, 
-    dossier_id: int, 
-    current_user: Utilisateur
-) -> dict:
-    """Supprime un dossier et toutes ses associations (admin uniquement)"""
-    
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Seuls les administrateurs peuvent supprimer des dossiers"
-        )
-    
-    # Vérifier que le dossier existe
-    dossier = self._check_dossier_exists(dossier_id)
-    
-    #  1. Supprimer les associations dossier-document
-    from app.modules.documents.models import DocumentDossier
-    
-    deleted_associations = self.db.query(DocumentDossier).filter(
-        DocumentDossier.dossier_id == dossier_id
-    ).delete()
-    
-    # 2. Supprimer le dossier
-    self.db.delete(dossier)
-    self.db.commit()
-    
-    return {
-        "message": f"Dossier {dossier_id} supprimé avec succès",
-        "associations_supprimees": deleted_associations
-    }
+    def delete_dossier(
+        self, 
+        dossier_id: int, 
+        current_user: Utilisateur
+    ) -> dict:
+        """Supprime un dossier et toutes ses associations (admin uniquement)"""
         
+        if current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Seuls les administrateurs peuvent supprimer des dossiers"
+            )
+        
+        # Vérifier que le dossier existe
+        dossier = self._check_dossier_exists(dossier_id)
+        
+        #  1. Supprimer les associations dossier-document
+        from app.modules.documents.models import DocumentDossier
+        
+        deleted_associations = self.db.query(DocumentDossier).filter(
+            DocumentDossier.dossier_id == dossier_id
+        ).delete()
+        
+        # 2. Supprimer le dossier
+        self.db.delete(dossier)
+        self.db.commit()
+        
+        return {
+            "message": f"Dossier {dossier_id} supprimé avec succès",
+            "associations_supprimees": deleted_associations
+        }
+
+    # backend/app/modules/dossiers/service.py
+
+    def calculer_statut(self, dossier: DossierImportation) -> str:
+        """
+        Calcule le statut d'un dossier sans le modifier en BDD.
+        Logique identique à _update_statut mais sans commit.
+        """
+        from datetime import date, timedelta
+        
+        if not dossier.date_depart:
+            return StatutDossier.EN_ATTENTE.value
+
+        if dossier.date_depart and not dossier.date_arrivee:
+            return StatutDossier.DEPART.value
+
+        if dossier.date_arrivee and not dossier.date_sortie_port:
+            fin_delai = dossier.date_arrivee + timedelta(days=dossier.delai_franchise_jours)
+            if date.today() > fin_delai:
+                return StatutDossier.ARRIVEE_SURESTARIES.value
+            return StatutDossier.ARRIVEE.value
+
+        if dossier.date_sortie_port:
+            fin_delai = dossier.date_arrivee + timedelta(days=dossier.delai_franchise_jours)
+            if dossier.date_sortie_port > fin_delai:
+                return StatutDossier.SORTIE_SURESTARIES.value
+            return StatutDossier.SORTIE.value
+
+        return dossier.statut
+
+
+    def mettre_a_jour_statuts_automatique(self) -> int:
+        """
+        Parcourt tous les dossiers actifs et met à jour leurs statuts si nécessaire.
+        Retourne le nombre de dossiers modifiés.
+        """
+        dossiers = self.db.query(DossierImportation).filter(
+            DossierImportation.statut.in_(["en_attente", "depart", "arrivee"])
+        ).all()
+        
+        compteur = 0
+        for dossier in dossiers:
+            nouveau_statut = self.calculer_statut(dossier)
+            if nouveau_statut != dossier.statut:
+                dossier.statut = nouveau_statut
+                compteur += 1
+                print(f"[AUTO] Dossier {dossier.id} : {dossier.statut} → {nouveau_statut}")
+        
+        if compteur > 0:
+            self.db.commit()
+        
+        return compteur       
