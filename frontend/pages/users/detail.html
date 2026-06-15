@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PortFlow | Détail utilisateur</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/top-header.css">
+    <link rel="stylesheet" href="../../css/pages/users-detail.css">
+</head>
+<body>
+    <div id="page-content">
+        <!-- Bouton retour -->
+        <div class="back-button-wrapper">
+            <a href="list.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+        
+        <div id="loadingSpinner" class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i> Chargement...
+        </div>
+        
+        <div id="userContent" style="display: none;">
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-user-circle"></i> Informations de l'utilisateur</span>
+                    <div class="header-actions">
+                        <button class="btn-edit" id="editUserBtn">
+                            <i class="fas fa-edit"></i> Modifier
+                        </button>
+                        <button class="btn-danger" id="deleteUserBtn">
+                            <i class="fas fa-trash-alt"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>ID</label>
+                        <span id="userId">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Nom</label>
+                        <span id="userNom">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Email</label>
+                        <span id="userEmail">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Rôle</label>
+                        <span id="userRole">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Statut</label>
+                        <span id="userStatut">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Date d'inscription</label>
+                        <span id="userDateCreation">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-chart-simple"></i> Statistiques de l'utilisateur</span>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="userDossiersCount">0</div>
+                        <div class="stat-mini-label">Dossiers créés</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="userDocumentsObtenus">0</div>
+                        <div class="stat-mini-label">Documents obtenus</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="userDocumentsManquants">0</div>
+                        <div class="stat-mini-label">Documents manquants</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="userTauxCompletion">0%</div>
+                        <div class="stat-mini-label">Taux de complétion</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/users.js"></script>
+    <script src="../../js/api/dossiers.js"></script>
+    <script src="../../js/api/suivi-documents.js"></script>
+    <script src="../../js/components/sidebar.js"></script>
+    <script src="../../js/components/top-header.js"></script>
+    <script src="../../js/utils/components-loader.js"></script>
+    <script src="../../js/modules/users/users-detail.js"></script>
+    
+    <script>
+        if (!Auth.isAuthenticated()) window.location.href = '../login.html';
+        if (!Auth.isAdmin()) window.location.href = '../dashboard-acheteur.html';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof ComponentsLoader !== 'undefined') {
+                await ComponentsLoader.init('admin');
+                ComponentsLoader.setActiveSidebarItem('utilisateurs');
+                ComponentsLoader.setPageTitle('Détail utilisateur');
+            }
+        });
+    </script>
+</body>
+</html>

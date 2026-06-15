@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PortFlow | Armateur</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/top-header.css">
+    <link rel="stylesheet" href="../../css/pages/armateurs.css">
+</head>
+<body>
+    <div id="page-content">
+        <!-- Bouton retour -->
+        <div class="back-button-wrapper">
+            <a href="list.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+        
+        <div class="form-card">
+            <div id="formError" class="error-message"></div>
+            <div id="formSuccess" class="success-message"></div>
+            
+            <form id="itemForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nom"><i class="fas fa-ship"></i> Nom *</label>
+                        <input type="text" id="nom" class="form-control" required placeholder="Nom de l'armateur">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lien_tracking"><i class="fas fa-link"></i> Lien de tracking</label>
+                        <input type="url" id="lien_tracking" class="form-control" placeholder="https://...">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="actif" checked>
+                            <span>Armateur actif</span>
+                        </label>
+                        <small style="color: #757575;">Un armateur inactif n'apparaîtra pas dans les sélections</small>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="window.location.href='list.html'">Annuler</button>
+                    <button type="submit" class="btn-save" id="submitBtn">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/components/sidebar.js"></script>
+    <script src="../../js/components/top-header.js"></script>
+    <script src="../../js/utils/components-loader.js"></script>
+    <script src="../../js/modules/armateurs.js"></script>
+    
+    <script>
+        if (!Auth.isAuthenticated()) window.location.href = '../login.html';
+        if (!Auth.isAdmin()) window.location.href = '../dashboard-acheteur.html';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof ComponentsLoader !== 'undefined') {
+                await ComponentsLoader.init('admin');
+                ComponentsLoader.setActiveSidebarItem('armateurs');
+                ComponentsLoader.setPageTitle('Armateur');
+            }
+        });
+    </script>
+</body>
+</html>

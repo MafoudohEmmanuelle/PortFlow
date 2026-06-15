@@ -45,6 +45,8 @@ class DossierResponse(BaseModel):
     fournisseur: str
     armateur_id: Optional[int] = None
     armateur_nom: Optional[str] = None
+    utilisateur_id: Optional[int] = None  
+    utilisateur_nom: Optional[str] = None 
     delai_franchise_jours: int
     statut: str
     date_creation: datetime

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PortFlow | Nouveau dossier d'importation</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles globaux -->
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/top-header.css">
+    <!-- Styles spécifiques au formulaire -->
+    <link rel="stylesheet" href="../../css/pages/dossier-form.css">
+</head>
+<body>
+    <!-- Le contenu sera automatiquement placé dans page-content-container par ComponentsLoader -->
+    <div id="page-content">
+        <!-- Formulaire -->
+        <div class="form-card">
+            <form id="dossierForm">
+                <div id="formError" class="error-message"></div>
+                <div id="formSuccess" class="success-message"></div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="numero_bl"><i class="fas fa-barcode"></i> N° BL / Connaissement *</label>
+                        <input type="text" id="numero_bl" class="form-control" required placeholder="Ex: BL2024001">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fournisseur"><i class="fas fa-building"></i> Fournisseur *</label>
+                        <input type="text" id="fournisseur" class="form-control" required placeholder="Nom du fournisseur">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="armateur_id"><i class="fas fa-ship"></i> Armateur *</label>
+                        <select id="armateur_id" class="form-control" required>
+                            <option value="">Chargement...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eta_initiale"><i class="fas fa-calendar"></i> ETA (date d'arrivée prévue) *</label>
+                        <input type="date" id="eta_initiale" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="delai_franchise_jours"><i class="fas fa-hourglass-half"></i> Délai de franchise (jours)</label>
+                        <input type="number" id="delai_franchise_jours" class="form-control" value="11" min="1" max="30">
+                        <small style="color: #757575;">Nombre de jours de gratuité au port avant surestaries</small>
+                    </div>
+                </div>
+                
+                <!-- Documents requis -->
+                <div class="documents-section">
+                    <label><i class="fas fa-file-alt"></i> Documents requis *</label>
+                    <div id="documentsContainer" class="documents-checkboxes">
+                        <div class="form-loading"><i class="fas fa-spinner fa-spin"></i> Chargement des documents...</div>
+                    </div>
+                    <small style="color: #757575; margin-top: 8px; display: block;">Cochez tous les documents qui seront nécessaires pour ce dossier</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="window.location.href='list.html'">Annuler</button>
+                    <button type="submit" class="btn-save" id="submitBtn">
+                        <i class="fas fa-save"></i> Créer le dossier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/dossiers.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/api/suivi-documents.js"></script>
+    <script src="../../js/components/sidebar.js"></script>
+    <script src="../../js/components/top-header.js"></script>
+    <script src="../../js/utils/components-loader.js"></script>
+    <script src="../../js/modules/dossiers/dossier-form.js"></script>
+    
+    <script>
+        // Vérifier l'authentification
+        if (typeof Auth !== 'undefined' && !Auth.isAuthenticated()) {
+            window.location.href = '../login.html';
+        }
+        
+        // Initialiser les composants (sidebar et top-header)
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Formulaire dossier - Initialisation des composants');
+            
+            // Déterminer le rôle
+            const isAdmin = Auth.isAdmin ? Auth.isAdmin() : false;
+            const role = isAdmin ? 'admin' : 'acheteur';
+            
+            // Initialiser les composants
+            if (typeof ComponentsLoader !== 'undefined') {
+                await ComponentsLoader.init(role);
+                
+                // Mettre à jour le titre de la page
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                const pageTitle = id ? 'Modifier le dossier' : 'Nouveau dossier d\'importation';
+                ComponentsLoader.setPageTitle(pageTitle);
+                
+                // Mettre à jour l'élément actif de la sidebar
+                ComponentsLoader.setActiveSidebarItem('dossiers');
+            } else {
+                console.error('ComponentsLoader non disponible');
+            }
+        });
+    </script>
+</body>
+</html>

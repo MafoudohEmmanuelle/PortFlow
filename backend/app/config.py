@@ -14,14 +14,9 @@ class Settings(BaseSettings):
     # JWT
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 59
-    
-    # SMTP (Notifications email)
-    SMTP_HOST: str = ""
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_FROM: str = "PortFlow <noreply@portflow.com>"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    APP_NAME: str = "PortFlow"
+    API_V1_PREFIX: str = "/api/v1"
     
     class Config:
         env_file = ".env"

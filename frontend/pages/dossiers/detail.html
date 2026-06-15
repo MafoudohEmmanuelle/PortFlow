@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PortFlow | Détail du dossier</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles globaux -->
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/top-header.css">
+    <!-- Styles spécifiques -->
+    <link rel="stylesheet" href="../../css/pages/dossier-detail.css">
+</head>
+<body>
+    <div id="page-content">
+        <!-- Bouton retour -->
+        <div class="back-button-wrapper">
+            <button type="button" class="btn-back" onclick="window.location.href='list.html'">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </button>
+        </div>
+        
+        <!-- Loading spinner -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i> Chargement du dossier...
+        </div>
+        
+        <!-- Contenu du dossier -->
+        <div id="dossierContent" style="display: none;">
+            <!-- ========== 1. INFORMATIONS GÉNÉRALES ========== -->
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-info-circle"></i> Informations générales</span>
+                    <button class="btn-edit" id="editDossierBtn">
+                        <i class="fas fa-edit"></i> Modifier le dossier
+                    </button>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>N° BL</label>
+                        <span id="dossierNumBl">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Fournisseur</label>
+                        <span id="dossierFournisseur">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Armateur</label>
+                        <span id="dossierArmateur">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>ETA initiale</label>
+                        <span id="dossierEtaInitiale">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Délai de franchise</label>
+                        <span id="dossierDelai">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Statut</label>
+                        <span id="dossierStatut">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Date création</label>
+                        <span id="dossierDateCreation">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== 2. SUIVI DU TRANSPORT========== -->
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-calendar-alt"></i> Suivi du transport</span>
+                </div>
+                <div class="transport-timeline">
+                    <!-- Départ -->
+                    <div class="transport-step" id="stepDepart">
+                        <div class="step-icon"><i class="fas fa-ship"></i></div>
+                        <div class="step-label">Départ</div>
+                        <div class="step-date" id="departDate">Non renseigné</div>
+                        <button class="step-btn btn-outline-grey" data-action="depart">
+                            <i class="fas fa-pen"></i> Marquer
+                        </button>
+                    </div>
+                    
+                    <div class="transport-arrow"><i class="fas fa-arrow-right"></i></div>
+                    
+                    <!-- Arrivée -->
+                    <div class="transport-step" id="stepArrivee">
+                        <div class="step-icon"><i class="fas fa-anchor"></i></div>
+                        <div class="step-label">Arrivée au port</div>
+                        <div class="step-date" id="arriveeDate">Non renseigné</div>
+                        <div class="step-warning" id="arriveeWarning"></div>
+                        <button class="step-btn btn-outline-grey" data-action="arrivee">
+                            <i class="fas fa-pen"></i> Marquer
+                        </button>
+                    </div>
+                    
+                    <div class="transport-arrow"><i class="fas fa-arrow-right"></i></div>
+                    
+                    <!-- Sortie -->
+                    <div class="transport-step" id="stepSortie">
+                        <div class="step-icon"><i class="fas fa-truck"></i></div>
+                        <div class="step-label">Sortie du port</div>
+                        <div class="step-date" id="sortieDate">Non renseigné</div>
+                        <div class="step-warning" id="sortieWarning"></div>
+                        <button class="step-btn btn-outline-grey" data-action="sortie">
+                            <i class="fas fa-pen"></i> Marquer
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== 3. SUIVI DOCUMENTAIRE ========== -->
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-file-alt"></i> Suivi documentaire</span>
+                </div>
+                
+                <!-- Pourcentage de complétion -->
+                <div class="completion-section">
+                    <div class="completion-label">Avancement documentaire</div>
+                    <div class="completion-bar-wrapper">
+                        <div class="completion-rate" id="completionRateValue">0%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="completionFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Liste des documents (horizontal) -->
+                <div class="documents-horizontal" id="documentsList">
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement des documents...</div>
+                </div>
+            </div>
+            
+            <!-- ========== 4. TRACKING MARITIME ========== -->
+            <div class="card-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-ship"></i> Tracking maritime</span>
+                    <button class="btn-red" id="addTrackingBtn">
+                        <i class="fas fa-plus"></i> Ajouter un relevé
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table tracking-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Position</th>
+                                <th>ETD</th>
+                                <th>ETA</th>
+                                <th id="trackingAuthorHeader" style="display: none;">Ajouté par</th>
+                                <th id="trackingActionsHeader" style="display: none;" style="width: 80px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trackingTableBody">
+                            <tr><td colspan="6" class="tracking-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...<\/td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div id="trackingPagination" class="pagination-container" style="display: none;">
+                    <button class="pagination-btn" id="trackingPrevBtn" disabled>
+                        <i class="fas fa-chevron-left"></i> Précédent
+                    </button>
+                    <span id="trackingPageInfo" class="pagination-info">Page 1 / 1</span>
+                    <button class="pagination-btn" id="trackingNextBtn" disabled>
+                        Suivant <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="tracking-note">
+                    <small><i class="fas fa-info-circle"></i> Suivez l'évolution de votre cargaison (position, ETD, ETA)</small>
+                </div>
+            </div>
+
+            <!-- Modal pour le formulaire de tracking (inchangé) -->
+            <div id="trackingModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="trackingModalTitle">Nouveau relevé de tracking</h3>
+                        <button class="modal-close" id="closeTrackingModalBtn">&times;</button>
+                    </div>
+                    <form id="trackingForm">
+                        <div class="form-group">
+                            <label for="trackingPosition"><i class="fas fa-map-pin"></i> Position *</label>
+                            <input type="text" id="trackingPosition" class="form-control" placeholder="Ex: Port de Shanghai, En mer, Arrivé à Douala..." required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="trackingEtd"><i class="fas fa-calendar-departure"></i> ETD (Date de départ estimée)</label>
+                                <input type="date" id="trackingEtd" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="trackingEta"><i class="fas fa-calendar-check"></i> ETA (Date d'arrivée estimée)</label>
+                                <input type="date" id="trackingEta" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" id="cancelTrackingBtn">Annuler</button>
+                            <button type="button" class="btn-save" id="trackingSubmitBtn">
+                                <i class="fas fa-plus"></i> Créer le relevé
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Scripts -->
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/dossiers.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/api/suivi-documents.js"></script>
+    <script src="../../js/api/tracking.js"></script>
+    <script src="../../js/components/sidebar.js"></script>
+    <script src="../../js/components/top-header.js"></script>
+    <script src="../../js/utils/components-loader.js"></script>
+    <script src="../../js/modules/dossiers/dossier-detail.js"></script>
+    <script src="../../js/modules/tracking.js"></script>
+    <script>
+        if (!Auth.isAuthenticated()) {
+            window.location.href = '../login.html';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAdmin = Auth.isAdmin();
+            const role = isAdmin ? 'admin' : 'acheteur';
+            
+            if (typeof ComponentsLoader !== 'undefined') {
+                await ComponentsLoader.init(role);
+                ComponentsLoader.setActiveSidebarItem('dossiers');
+                ComponentsLoader.setPageTitle('Détail du dossier');
+            }
+        });
+    </script>
+</body>
+</html>

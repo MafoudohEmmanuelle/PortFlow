@@ -78,7 +78,7 @@ def remove_dossier_document(
     if not current_user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, details="Utilisateur non authentifié")
     doc_service = DossierDocumentService(db)
-    doc_service.remove_dossier_document(association_id)
+    doc_service.remove_dossier_document(association_id,current_user)
     return None
 
 # ========== ENDPOINTS DE MASSE (OPTIONNEL) ==========

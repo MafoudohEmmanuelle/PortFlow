@@ -1,0 +1,189 @@
+/* ============================================
+   USERS DETAIL - Styles spécifiques
+   ============================================ */
+
+/* Bouton retour */
+.back-button-wrapper {
+    margin-bottom: 20px;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #F5F5F5;
+    border: 1px solid #E0E0E0;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: #1E1E1E;
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    background: #E0E0E0;
+    border-color: #D32F2F;
+    color: #D32F2F;
+}
+
+.btn-back i {
+    font-size: 0.85rem;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 60px;
+    color: #757575;
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    display: block;
+    color: #D32F2F;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.info-item label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #757575;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-item span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1E1E1E;
+    background: #F5F5F5;
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-edit {
+    background: #F5F5F5;
+    border: 1px solid #E0E0E0;
+    padding: 6px 16px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-edit:hover {
+    background: #E0E0E0;
+}
+
+.btn-danger {
+    background: #FFEBEE;
+    border: 1px solid #FFCDD2;
+    color: #D32F2F;
+    padding: 6px 16px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-danger:hover {
+    background: #FFCDD2;
+}
+
+/* Statistiques */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.stat-mini {
+    background: #F5F5F5;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-mini-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #D32F2F;
+}
+
+.stat-mini-label {
+    font-size: 0.75rem;
+    color: #757575;
+    margin-top: 8px;
+}
+
+/* Badges */
+.badge-admin, .badge-acheteur, .badge-actif, .badge-inactif {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: #D32F2F;
+    color: white;
+}
+
+.badge-acheteur {
+    background: #1565C0;
+    color: white;
+}
+
+.badge-actif {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.badge-inactif {
+    background: #FFEBEE;
+    color: #D32F2F;
+}
+
+@media (max-width: 700px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-edit, .btn-danger {
+        justify-content: center;
+    }
+}

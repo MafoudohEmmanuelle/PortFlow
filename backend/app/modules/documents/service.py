@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 from .models import DossierDocument
 from app.modules.dossiers.models import DossierImportation
 from app.modules.referentiels.models import Document
+from app.modules.auth.models import Utilisateur
 
 class DossierDocumentService:
     """Service de gestion des associations dossier-document"""
@@ -64,6 +65,20 @@ class DossierDocumentService:
             )
         
         return association
+    
+    def _check_dossier_modifiable(self, dossier_id: int) -> None:
+        """Vérifie que le dossier n'est pas clôturé"""
+        from app.modules.dossiers.models import DossierImportation
+        
+        dossier = self.db.query(DossierImportation).filter(
+            DossierImportation.id == dossier_id
+        ).first()
+        
+        if dossier and dossier.date_sortie_port is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ce dossier est clôturé. Impossible de modifier ses documents."
+            )
 
     # ========== MÉTHODES PRINCIPALES ==========
 
@@ -149,11 +164,15 @@ class DossierDocumentService:
         
         return association
 
-    def remove_dossier_document(self, association_id: int) -> Dict[str, str]:
+    def remove_dossier_document(self, association_id: int, current_user: Utilisateur = None) -> Dict[str, str]:
         """
         Retire un document du suivi en utilisant l'ID de l'association.
+        Règles métier:
+        - Un document déjà obtenu ne peut pas être retiré (sauf admin)
+        - Seul l'admin peut forcer la suppression d'un document obtenu
         Args:
             association_id: ID de l'association dans la table dossier_document
+            current_user: Utilisateur connecté (optionnel, pour vérifier les droits)
         Returns:
             Message de confirmation
         """
@@ -165,11 +184,21 @@ class DossierDocumentService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Association {association_id} non trouvée"
             )
-        
+        # Vérifier si le document a déjà été obtenu
+        if association.obtenu:
+            # Si admin, on autorise avec un warning
+            if current_user and current_user.role == "admin":
+                # Optionnel: logger l'action admin
+                print(f"Admin {current_user.email} force la suppression du document {association.document_id} déjà obtenu")
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Impossible de retirer le document car il a déjà été marqué comme obtenu. "
+                        f"Contactez un administrateur si nécessaire."
+                )
         self.db.delete(association)
         self.db.commit()
-        
-        return {"message": f"Association {association_id} supprimée avec succès"}
+        return {"message": f"Document {association.document_id} retiré du dossier {association.dossier_id}"}
     def update_dossier_document(
             self,
             dossier_document_id: int,
@@ -182,6 +211,7 @@ class DossierDocumentService:
             ).first()
             if not association:
                 raise HTTPException(404, "Association non trouvée")
+            self._check_dossier_modifiable(association.dossier_id)
             if association.obtenu == True and obtenu == False:
                 raise HTTPException(
                     status_code=400,

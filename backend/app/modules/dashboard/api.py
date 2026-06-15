@@ -1,17 +1,15 @@
-from fastapi import APIRouter, Depends
+# backend/app/modules/dashboard/api.py
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ...database import get_db
 from ...core.dependencies import get_current_admin, get_current_user
 from ...modules.auth.models import Utilisateur, UserRole
 from ...modules.users.service import UserService
-from ...core.dependencies import get_current_user, get_current_admin
-from ...modules.auth.models import Utilisateur
-from ...modules.dossiers.models import DossierImportation
-from ...modules.documents.models import DossierDocument
-from ...modules.alertes.models import Alerte
-from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+
+# ========== DASHBOARD ADMINISTRATEUR ==========
+
 
 @router.get("/admin/stats")
 def get_admin_stats(
@@ -19,243 +17,259 @@ def get_admin_stats(
     current_admin: Utilisateur = Depends(get_current_admin)
 ):
     """Statistiques pour l'administrateur"""
-    user_service = UserService(db)
     
-    total_users = len(user_service.get_all_users())
-    admin_count = db.query(Utilisateur).filter(Utilisateur.role == UserRole.admin).count()
-    acheteur_count = db.query(Utilisateur).filter(Utilisateur.role == UserRole.acheteur).count()
+    now = datetime.now(timezone.utc)
+    
+    # ========== 1. KPIS ==========
+    total_users = db.query(Utilisateur).filter(Utilisateur.actif == True).count()
+    
+    dossiers_actifs = db.query(DossierImportation).filter(
+        DossierImportation.date_sortie_port.is_(None)
+    ).count()
+    
+    dossiers_clotures = db.query(DossierImportation).filter(
+        DossierImportation.date_sortie_port.isnot(None)
+    ).count()
+    
+    taux_surestaries = 0
+    if dossiers_clotures > 0:
+        surestaries_cloture = db.query(DossierImportation).filter(
+            DossierImportation.statut == StatutDossier.SORTIE_SURESTARIES.value
+        ).count()
+        taux_surestaries = round((surestaries_cloture / dossiers_clotures) * 100, 1)
+    
+    documents_manquants = db.query(DossierDocument).filter(
+        DossierDocument.obtenu == False
+    ).count()
+    
+    # ========== 2. ÉVOLUTION DES SURESTARIES ==========
+    evolution = []
+    for i in range(5, -1, -1):
+        mois = now - timedelta(days=30 * i)
+        debut_mois = mois.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        fin_mois = (debut_mois + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
+        
+        count = db.query(DossierImportation).filter(
+            DossierImportation.statut == StatutDossier.SORTIE_SURESTARIES.value,
+            DossierImportation.date_sortie_port >= debut_mois,
+            DossierImportation.date_sortie_port <= fin_mois
+        ).count()
+        
+        evolution.append({
+            "mois": debut_mois.strftime("%b"),
+            "nombre": count
+        })
+    
+    # ========== 3. RÉPARTITION PAR STATUT ==========
+    statuts = db.query(
+        DossierImportation.statut,
+        func.count(DossierImportation.id).label("count")
+    ).group_by(DossierImportation.statut).all()
+    
+    repartition_statuts = [
+        {"statut": s.statut, "count": s.count}
+        for s in statuts
+    ]
+    
+    # ========== 4. DERNIÈRES ALERTES ==========
+    # Version simplifiée sans calcul de dates problématique
+    dernieres_alertes = []
+    
+    # Récupérer les dossiers avec documents manquants
+    dossiers_manquants = db.query(
+        DossierImportation.id,
+        DossierImportation.numero_bl,
+        DossierImportation.fournisseur,
+        DossierImportation.date_creation
+    ).join(
+        DossierDocument, DossierImportation.id == DossierDocument.dossier_id
+    ).filter(
+        DossierDocument.obtenu == False
+    ).distinct().order_by(
+        DossierImportation.date_creation.desc()
+    ).limit(5).all()
+    
+    for d in dossiers_manquants:
+        missing_count = db.query(DossierDocument).filter(
+            DossierDocument.dossier_id == d.id,
+            DossierDocument.obtenu == False
+        ).count()
+        
+        dernieres_alertes.append({
+            "dossier_id": d.id,
+            "dossier_numero_bl": d.numero_bl,
+            "message": f"{missing_count} document(s) manquant(s)",
+            "critique": False,
+            "date": d.date_creation.isoformat() if d.date_creation else now.isoformat()
+        })
     
     return {
-        "total_users": total_users,
-        "admin_count": admin_count,
-        "acheteur_count": acheteur_count,
-        "active_users": db.query(Utilisateur).filter(Utilisateur.actif == True).count()
+        "kpis": {
+            "total_users": total_users,
+            "dossiers_actifs": dossiers_actifs,
+            "taux_surestaries": taux_surestaries,
+            "documents_manquants": documents_manquants
+        },
+        "evolution_surestaries": evolution,
+        "repartition_statuts": repartition_statuts,
+        "dernieres_alertes": dernieres_alertes
     }
+
+    # ========== 5. DERNIÈRES ALERTES ==========
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TODO: À remplacer par le module alerte quand il sera prêt
+    # Actuellement: basé sur les documents manquants (solution temporaire)
+    # À remplacer par: db.query(Alerte).filter(...).order_by(...).limit(5).all()
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    # TEMPORAIRE - À SUPPRIMER QUAND LE MODULE ALERTE SERA PRÊT
+    dossiers_avec_manquants = db.query(
+        DossierImportation.id,
+        DossierImportation.numero_bl,
+        DossierImportation.fournisseur,
+        DossierImportation.date_arrivee,
+        DossierImportation.delai_franchise_jours,
+        DossierImportation.date_creation
+    ).join(
+        DossierDocument, DossierImportation.id == DossierDocument.dossier_id
+    ).filter(
+        DossierDocument.obtenu == False
+    ).distinct().order_by(
+        DossierImportation.date_creation.desc()
+    ).limit(5).all()
+    
+    dernieres_alertes = []
+    for d in dossiers_avec_manquants:
+        missing_count = db.query(DossierDocument).filter(
+            DossierDocument.dossier_id == d.id,
+            DossierDocument.obtenu == False
+        ).count()
+        
+        est_critique = False
+        if d.date_arrivee:
+            fin_delai = d.date_arrivee + timedelta(days=d.delai_franchise_jours)
+            if (fin_delai - now).days <= 2:
+                est_critique = True
+        
+        dernieres_alertes.append({
+            "dossier_id": d.id,
+            "dossier_numero_bl": d.numero_bl,
+            "fournisseur": d.fournisseur,
+            "message": f"{missing_count} document(s) manquant(s)",
+            "critique": est_critique,
+            "date": d.date_creation.isoformat() if d.date_creation else now.isoformat()
+        })
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # FIN DE LA SECTION TEMPORAIRE
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    return {
+        "kpis": {
+            "total_users": total_users,
+            "dossiers_actifs": dossiers_actifs,
+            "dossiers_surestarie": dossiers_surestarie,
+            "taux_surestaries": taux_surestaries,
+            "documents_manquants": documents_manquants
+        },
+        "evolution_surestaries": evolution,
+        "repartition_statuts": repartition_statuts,
+        "top_armateurs_retards": top_armateurs_list,
+        "dernieres_alertes": dernieres_alertes  # À remplacer par vraies alertes
+    }
+
+
+# ========== DASHBOARD ACHETEUR ==========
 
 @router.get("/acheteur/stats")
 def get_acheteur_stats(
+    db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Statistiques pour l'acheteur"""
+    """Statistiques pour l'acheteur connecté"""
+    
+    now = datetime.now(timezone.utc)
+    user_id = current_user.id
+    
+    # ========== 1. KPIS ==========
+    
+    # Mes dossiers actifs (non sortis)
+    dossiers_actifs = db.query(DossierImportation).filter(
+        DossierImportation.utilisateur_id == user_id,
+        DossierImportation.date_sortie_port.is_(None)
+    ).count()
+    
+    # Mes documents manquants
+    mes_documents_manquants = db.query(DossierDocument).join(
+        DossierImportation, DossierDocument.dossier_id == DossierImportation.id
+    ).filter(
+        DossierImportation.utilisateur_id == user_id,
+        DossierDocument.obtenu == False
+    ).count()
+    
+    # Prochaine échéance (franchise la plus proche)
+    dossiers_avec_date = db.query(
+        DossierImportation.id,
+        DossierImportation.date_arrivee,
+        DossierImportation.delai_franchise_jours
+    ).filter(
+        DossierImportation.utilisateur_id == user_id,
+        DossierImportation.date_arrivee.isnot(None),
+        DossierImportation.date_sortie_port.is_(None)
+    ).all()
+    
+    prochaine_echeance = None
+    for d in dossiers_avec_date:
+        if d.date_arrivee:
+            fin_delai = d.date_arrivee + timedelta(days=d.delai_franchise_jours)
+            jours_restants = (fin_delai - now).days
+            if jours_restants >= 0:
+                if prochaine_echeance is None or jours_restants < prochaine_echeance:
+                    prochaine_echeance = jours_restants
+    
+    # ========== 2. TAUX DE COMPLÉTION ==========
+    total_documents = db.query(DossierDocument).join(
+        DossierImportation, DossierDocument.dossier_id == DossierImportation.id
+    ).filter(
+        DossierImportation.utilisateur_id == user_id
+    ).count()
+    
+    documents_obtenus = db.query(DossierDocument).join(
+        DossierImportation, DossierDocument.dossier_id == DossierImportation.id
+    ).filter(
+        DossierImportation.utilisateur_id == user_id,
+        DossierDocument.obtenu == True
+    ).count()
+    
+    completion_pourcentage = 0
+    if total_documents > 0:
+        completion_pourcentage = round((documents_obtenus / total_documents) * 100)
+    
+    # ========== 3. MES DOSSIERS PAR STATUT ==========
+    mes_statuts = db.query(
+        DossierImportation.statut,
+        func.count(DossierImportation.id).label("count")
+    ).filter(
+        DossierImportation.utilisateur_id == user_id
+    ).group_by(DossierImportation.statut).all()
+    
+    # ========== 4. MES ALERTES ==========
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TODO: À remplacer par le module alerte quand il sera prêt
+    # Actuellement: pas d'alertes (solution temporaire)
+    # À remplacer par: db.query(Alerte).filter(utilisateur_id == user_id).all()
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    # TEMPORAIRE - À SUPPRIMER QUAND LE MODULE ALERTE SERA PRÊT
+    # Pour l'instant, on ne retourne pas d'alertes dans le dashboard acheteur
+    mes_alertes = []  # Liste vide en attendant le module alerte
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # FIN DE LA SECTION TEMPORAIRE
+    # ═══════════════════════════════════════════════════════════════════════════
+    
     return {
         "bienvenue": f"Bonjour {current_user.nom}",
         "role": current_user.role.value,
         "email": current_user.email
     }
-
-# ========== NOUVEAUX ENDPOINTS POUR LE SPRINT 3 (J6) ==========
-
-@router.get("/stats/surestaries")
-def get_surestaries_stats(
-    db: Session = Depends(get_db),
-    current_user: Utilisateur = Depends(get_current_user)
-):
-    """
-    Statistiques des surestaries pour le dashboard.
-    Accessible aux admins et aux acheteurs (données filtrées).
-    """
-    # Requête de base
-    query = db.query(DossierImportation)
-    
-    # Filtrer par utilisateur si non admin
-    if current_user.role != "admin":
-        query = query.filter(DossierImportation.utilisateur_id == current_user.id)
-    
-    dossiers = query.all()
-    
-    # Calculer les surestaries
-    total_dossiers = len(dossiers)
-    dossiers_avec_surestaries = 0
-    montant_total_surestaries = 0
-    jours_surestaries_total = 0
-    
-    for dossier in dossiers:
-        if dossier.date_arrivee and dossier.date_sortie_port:
-            delai = dossier.delai_franchise_jours
-            date_fin_franchise = dossier.date_arrivee + timedelta(days=delai)
-            
-            if dossier.date_sortie_port > date_fin_franchise:
-                dossiers_avec_surestaries += 1
-                jours_retard = (dossier.date_sortie_port - date_fin_franchise).days
-                jours_surestaries_total += jours_retard
-                # Montant estimé (exemple: 50€ par jour)
-                montant_total_surestaries += jours_retard * 50
-    
-    taux_surestaries = (dossiers_avec_surestaries / total_dossiers * 100) if total_dossiers > 0 else 0
-    
-    return {
-        "total_dossiers": total_dossiers,
-        "dossiers_avec_surestaries": dossiers_avec_surestaries,
-        "taux_surestaries": round(taux_surestaries, 2),
-        "jours_surestaries_total": jours_surestaries_total,
-        "montant_total_surestaries": montant_total_surestaries
-    }
-
-
-@router.get("/stats/dossiers")
-def get_dossiers_stats(
-    db: Session = Depends(get_db),
-    current_user: Utilisateur = Depends(get_current_user)
-):
-    """
-    Statistiques des dossiers par statut.
-    Accessible aux admins et aux acheteurs (données filtrées).
-    """
-    query = db.query(DossierImportation)
-    
-    if current_user.role != "admin":
-        query = query.filter(DossierImportation.utilisateur_id == current_user.id)
-    
-    dossiers = query.all()
-    
-    stats_par_statut = {}
-    for dossier in dossiers:
-        statut = dossier.statut
-        if statut not in stats_par_statut:
-            stats_par_statut[statut] = 0
-        stats_par_statut[statut] += 1
-    
-    # Ordre des statuts pour l'affichage
-    ordre_statuts = ["en_attente", "depart", "arrivee", "arrivee_surestaries", "sortie", "sortie_surestaries", "cloture"]
-    
-    resultat = []
-    for statut in ordre_statuts:
-        if statut in stats_par_statut:
-            resultat.append({
-                "statut": statut,
-                "libelle": get_libelle_statut(statut),
-                "nombre": stats_par_statut[statut]
-            })
-    
-    return resultat
-
-
-@router.get("/stats/documents")
-def get_documents_stats(
-    db: Session = Depends(get_db),
-    current_user: Utilisateur = Depends(get_current_user)
-):
-    """
-    Statistiques des documents (taux de complétion moyen).
-    Accessible aux admins et aux acheteurs (données filtrées).
-    """
-    # Récupérer les dossiers de l'utilisateur
-    query = db.query(DossierImportation)
-    if current_user.role != "admin":
-        query = query.filter(DossierImportation.utilisateur_id == current_user.id)
-    
-    dossiers = query.all()
-    
-    total_documents = 0
-    total_obtenus = 0
-    
-    for dossier in dossiers:
-        docs = db.query(DossierDocument).filter(
-            DossierDocument.dossier_id == dossier.id
-        ).all()
-        total_documents += len(docs)
-        total_obtenus += sum(1 for d in docs if d.obtenu)
-    
-    taux_completion = (total_obtenus / total_documents * 100) if total_documents > 0 else 0
-    
-    return {
-        "total_documents": total_documents,
-        "documents_obtenus": total_obtenus,
-        "documents_manquants": total_documents - total_obtenus,
-        "taux_completion": round(taux_completion, 2)
-    }
-
-
-@router.get("/stats/alertes")
-def get_alertes_stats_dashboard(
-    db: Session = Depends(get_db),
-    current_user: Utilisateur = Depends(get_current_user)
-):
-    """
-    Statistiques des alertes pour le dashboard.
-    Accessible aux admins et aux acheteurs (données filtrées).
-    """
-    from ..alertes.service import AlerteService
-    service = AlerteService(db)
-    stats = service.get_stats()
-    
-    # Si non admin, filtrer les alertes de l'utilisateur
-    if current_user.role != "admin":
-        from ..alertes.models import Alerte
-        from ..dossiers.models import DossierImportation
-        
-        # Récupérer les IDs des dossiers de l'utilisateur
-        user_dossier_ids = db.query(DossierImportation.id).filter(
-            DossierImportation.utilisateur_id == current_user.id
-        ).all()
-        user_dossier_ids = [d[0] for d in user_dossier_ids]
-        
-        alertes_user = db.query(Alerte).filter(
-            Alerte.dossier_id.in_(user_dossier_ids),
-            Alerte.est_lue == False
-        ).all()
-        
-        non_lues = len(alertes_user)
-        total = db.query(Alerte).filter(
-            Alerte.dossier_id.in_(user_dossier_ids)
-        ).count()
-        
-        return {
-            "total": total,
-            "non_lues": non_lues,
-            "par_type": {},
-            "par_niveau": {}
-        }
-    
-    return stats
-
-
-@router.get("/stats/evolution")
-def get_evolution_stats(
-    mois: int = 6,
-    db: Session = Depends(get_db),
-    current_admin: Utilisateur = Depends(get_current_admin)
-):
-    """
-    Statistiques d'évolution sur les X derniers mois (admin uniquement).
-    """
-    
-    resultat = []
-    
-    for i in range(mois):
-        date_fin = datetime.now() - timedelta(days=30 * i)
-        date_debut = date_fin - timedelta(days=30)
-        
-        dossiers_mois = db.query(DossierImportation).filter(
-            DossierImportation.date_creation.between(date_debut, date_fin)
-        ).count()
-        
-        surestaries_mois = db.query(DossierImportation).filter(
-            DossierImportation.date_creation.between(date_debut, date_fin),
-            DossierImportation.statut.in_(["arrivee_surestaries", "sortie_surestaries"])
-        ).count()
-        
-        resultat.append({
-            "mois": date_debut.strftime("%B %Y"),
-            "total_dossiers": dossiers_mois,
-            "surestaries": surestaries_mois,
-            "taux_surestaries": round((surestaries_mois / dossiers_mois * 100), 2) if dossiers_mois > 0 else 0
-        })
-    
-    return resultat
-
-
-# ========== FONCTIONS UTILITAIRES ==========
-
-def get_libelle_statut(statut: str) -> str:
-    """Retourne le libellé français d'un statut"""
-    libelles = {
-        "en_attente": "En attente de départ",
-        "depart": "En mer",
-        "arrivee": "Arrivé au port",
-        "arrivee_surestaries": "Arrivé - Surestaries",
-        "sortie": "Sorti du port",
-        "sortie_surestaries": "Sorti - Surestaries",
-        "cloture": "Clôturé"
-    }
-    return libelles.get(statut, statut)

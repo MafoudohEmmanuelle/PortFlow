@@ -3,6 +3,8 @@ from .models import Armateur, Document
 from .schemas import ArmateurCreate, DocumentCreate, ArmateurUpdate, DocumentUpdate
 from app.modules.auth.models import Utilisateur
 from fastapi import HTTPException, status
+from app.modules.dossiers.models import DossierImportation
+from app.modules.documents.models import DossierDocument
 
 class ArmateurService:
     
@@ -48,17 +50,30 @@ class ArmateurService:
         return existing_armateur
     
     def delete_armateur(self, armateur_id: int, current_user: Utilisateur):
-        """Supprime un armateur (soft delete)"""
+        """Supprime un armateur (soft delete) - vérifie qu'il n'est pas utilisé"""
         if current_user.role != "admin":
-            raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Seuls les administrateurs peuvent supprimer des armateurs")
-        existing_armateur = self.db.query(Armateur).filter(Armateur.id == armateur_id, Armateur.actif == True).first()
-        if not existing_armateur:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Armateur non trouvé")
+            raise HTTPException(403, "Accès réservé aux administrateurs")
+        # Vérifier si l'armateur est utilisé dans des dossiers actifs        
+        dossiers_actifs = self.db.query(DossierImportation).filter(
+            DossierImportation.armateur_id == armateur_id,
+            DossierImportation.date_sortie_port.is_(None)  # Dossiers non clôturés
+        ).count()
         
-        existing_armateur.actif = False
+        if dossiers_actifs > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Impossible de supprimer cet armateur car il est utilisé dans {dossiers_actifs} dossier(s) actif(s)"
+            )
+        
+        # Soft delete
+        armateur = self.db.query(Armateur).filter(Armateur.id == armateur_id).first()
+        if not armateur:
+            raise HTTPException(404, "Armateur non trouvé")
+        
+        armateur.actif = False
         self.db.commit()
-        return {"detail": "Armateur supprimé avec succès"}
-    
+        return {"message": "Armateur désactivé avec succès"}
+        
 class DocumentService:
     
     def __init__(self, db: Session):
@@ -110,13 +125,26 @@ class DocumentService:
         return existing_document
     
     def delete_document(self, document_id: int, current_user: Utilisateur):
-        """Supprime un document (soft delete)"""
+        """Supprime un type de document - vérifie qu'il n'est pas utilisé"""
         if current_user.role != "admin":
-            raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail="Seuls les administrateurs peuvent supprimer des documents")
-        existing_document = self.db.query(Document).filter(Document.id == document_id, Document.actif == True).first()
-        if not existing_document:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document non trouvé")
+            raise HTTPException(403, "Accès réservé aux administrateurs")
         
-        existing_document.actif = False
+        # Vérifier si le document est utilisé dans des associations actives        
+        associations = self.db.query(DossierDocument).filter(
+            DossierDocument.document_id == document_id
+        ).count()
+        
+        if associations > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Impossible de supprimer ce type de document car il est utilisé dans {associations} dossier(s)"
+            )
+        
+        # Soft delete
+        document = self.db.query(Document).filter(Document.id == document_id).first()
+        if not document:
+            raise HTTPException(404, "Document non trouvé")
+        
+        document.actif = False
         self.db.commit()
-        return {"detail": "Document supprimé avec succès"}
+        return {"message": "Type de document désactivé avec succès"}

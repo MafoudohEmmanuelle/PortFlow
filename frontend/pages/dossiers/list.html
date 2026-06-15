@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PortFlow | Dossiers d'importation</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles globaux -->
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/top-header.css">
+    <!-- Styles spécifiques à la page -->
+    <link rel="stylesheet" href="../../css/pages/dossiers-list.css">
+</head>
+<body>
+    <div id="page-content">
+        <!-- Barre de filtres -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label><i class="fas fa-search"></i> Recherche</label><small style="color: #757575;">La recherche est automatique</small>
+                <input type="text" id="searchInput" placeholder="N° BL, fournisseur..." autocomplete="off">
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-filter"></i> Statut</label>
+                <select id="filterStatut">
+                    <option value="">Tous les statuts</option>
+                    <option value="en_attente">En attente de départ</option>
+                    <option value="depart">En mer (départ)</option>
+                    <option value="arrivee">Arrivé au port</option>
+                    <option value="arrivee_surestaries">Arrivé - Surestaries</option>
+                    <option value="sortie">Sorti du port</option>
+                    <option value="sortie_surestaries">Sorti - Surestaries</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-ship"></i> Armateur</label>
+                <select id="filterArmateur">
+                    <option value="">Tous les armateurs</option>
+                </select>
+            </div>
+            <!-- Filtre Acheteur - visible uniquement pour l'admin -->
+            <div class="filter-group" id="acheteurFilterGroup" style="display: none;">
+                <label><i class="fas fa-user"></i> Acheteur</label>
+                <select id="filterAcheteur">
+                    <option value="">Tous les acheteurs</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="btn-reset" id="btnReset">
+                    <i class="fas fa-undo-alt"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
+        
+        <!-- Liste des dossiers -->
+        <div class="section-header">
+            <h2><i class="fas fa-list"></i> Liste des dossiers</h2>
+            <button class="btn-new" id="btnNew">
+                <i class="fas fa-plus"></i> Nouveau dossier
+            </button>
+        </div>
+        
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>N° BL</th>
+                        <th>Fournisseur</th>
+                        <th>Armateur</th>
+                        <!-- Colonne Acheteur - visible uniquement pour l'admin -->
+                        <th id="acheteurHeader" style="display: none;">Acheteur</th>
+                        <th>ETA</th>
+                        <th>Statut</th>
+                        <th>Documents</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dossiersTableBody">
+                    <tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...<\/td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/dossiers.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/api/users.js"></script>
+    <script src="../../js/api/suivi-documents.js"></script>
+    <script src="../../js/components/sidebar.js"></script>
+    <script src="../../js/components/top-header.js"></script>
+    <script src="../../js/utils/components-loader.js"></script>
+    <script src="../../js/modules/dossiers/dossiers-list.js"></script>
+    
+    <script>
+        if (!Auth.isAuthenticated()) {
+            window.location.href = '../login.html';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAdmin = Auth.isAdmin();
+            const role = isAdmin ? 'admin' : 'acheteur';
+            
+            // Afficher/masquer les éléments admin
+            if (isAdmin) {
+                document.getElementById('acheteurFilterGroup').style.display = 'flex';
+                document.getElementById('acheteurHeader').style.display = 'table-cell';
+                document.title = 'PortFlow | Tous les dossiers (Admin)';
+            }
+            
+            if (typeof ComponentsLoader !== 'undefined') {
+                await ComponentsLoader.init(role);
+                ComponentsLoader.setActiveSidebarItem('dossiers');
+                ComponentsLoader.setPageTitle(isAdmin ? 'Tous les dossiers' : 'Mes dossiers');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -24,7 +24,7 @@ def parse_cors_origins(origins_str: str) -> list:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500", "*"],
+    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # ← AJOUTER PUT et DELETE allow_methods=["*"],
     allow_headers=["*"],
@@ -50,12 +50,6 @@ app.include_router(dossier_document_router, prefix=settings.API_V1_PREFIX)
 
 from .modules.dossiers.api import router as dossier_importation_router
 app.include_router(dossier_importation_router, prefix=settings.API_V1_PREFIX) 
-
-from app.modules.alertes.api import router as alertes_router
-app.include_router(alertes_router, prefix=settings.API_V1_PREFIX)
-
-from .modules.tracking.api import router as tracking_router      # ← AJOUTER
-app.include_router(tracking_router, prefix=settings.API_V1_PREFIX)   # ← AJOUTER
 
 @app.get("/")
 async def root():
