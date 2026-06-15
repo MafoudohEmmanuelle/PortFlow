@@ -8,6 +8,8 @@ from app.core.dependencies import get_current_user
 from app.modules.auth.models import Utilisateur
 from app.modules.dossiers import service, schemas
 from app.modules.documents.service import DossierDocumentService
+from app.modules.referentiels.models import Armateur
+
 
 router = APIRouter(prefix="/dossiers", tags=["Dossiers d'importation"])
 
@@ -67,9 +69,6 @@ def get_dossiers(
     
     # Récupérer les documents pour chaque dossier
     doc_service = DossierDocumentService(db)
-
-    #ligne ajoutée
-    from app.modules.referentiels.models import Armateur
     result = []
     
     for dossier in dossiers:
@@ -85,6 +84,11 @@ def get_dossiers(
                 print(f"Armateur trouvé: ID={dossier.armateur_id}, Nom={armateur_nom}")  # Debug
             else:
                 print(f"Armateur NON trouvé: ID={dossier.armateur_id}")  # Debug
+        
+        utilisateur_nom = None
+        if dossier.utilisateur_id:
+            utilisateur = db.query(Utilisateur).filter(Utilisateur.id == dossier.utilisateur_id).first()
+            utilisateur_nom = utilisateur.nom if utilisateur else None
 
         documents = doc_service.get_dossier_documents(dossier.id)
         result.append({
@@ -92,7 +96,9 @@ def get_dossiers(
             "numero_bl": dossier.numero_bl,
             "fournisseur": dossier.fournisseur,
             "armateur_id": dossier.armateur_id,
-            "armateur_nom": armateur_nom, #a ete ajouté
+            "armateur_nom": armateur_nom, 
+            "utilisateur_id": dossier.utilisateur_id,  
+            "utilisateur_nom": utilisateur_nom,       
             "delai_franchise_jours": dossier.delai_franchise_jours,
             "statut": dossier.statut,
             "date_creation": dossier.date_creation,

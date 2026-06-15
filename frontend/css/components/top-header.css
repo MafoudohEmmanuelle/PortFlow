@@ -1,0 +1,44 @@
+/* ==========================
+   TOP HEADER
+========================== */
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.page-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #1E1E1E;
+}
+
+.user-area {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: white;
+    padding: 8px 18px;
+    border-radius: 40px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.user-area i {
+    font-size: 1.2rem;
+    color: #757575;
+}
+
+.logout-btn {
+    border: none;
+    background: transparent;
+    color: #D32F2F;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    opacity: 0.8;
+}

@@ -1,136 +1,247 @@
-// Logique de gestion des utilisateurs (dashboard admin)
-let currentUsers = [];
+// frontend/js/modules/users/users-list.js
 
+let allUsers = [];
+let currentFilters = {
+    search: '',
+    role: '',
+    status: ''
+};
+let searchTimeout = null;
+
+// Charger tous les utilisateurs
 async function loadUsers() {
-    const container = document.getElementById('usersTableBody');
-    if (!container) return;
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
     
-    container.innerHTML = '<tr><td colspan="6">Chargement...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...<\/td></tr>';
     
-    const result = await UsersAPI.getAll();
-    
-    if (result.ok && result.data) {
-        currentUsers = result.data;
-        displayUsers(currentUsers);
-    } else {
-        container.innerHTML = '<tr><td colspan="6">Erreur de chargement</td></tr>';
+    try {
+        const result = await UsersAPI.getAll();
+        
+        if (result.ok && result.data) {
+            allUsers = result.data;
+            applyFiltersAndDisplay();
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" class="error">Erreur de chargement<\/td></tr>';
+        }
+    } catch (error) {
+        console.error('Erreur loadUsers:', error);
+        tbody.innerHTML = '<tr><td colspan="7" class="error">Erreur de connexion<\/td></tr>';
     }
 }
 
-function displayUsers(users) {
-    const container = document.getElementById('usersTableBody');
-    if (!container) return;
+// Appliquer les filtres et afficher
+function applyFiltersAndDisplay() {
+    let filtered = [...allUsers];
     
-    if (users.length === 0) {
-        container.innerHTML = '<tr><td colspan="6">Aucun utilisateur</td></tr>';
+    // Filtre recherche (nom ou email)
+    if (currentFilters.search) {
+        const searchLower = currentFilters.search.toLowerCase();
+        filtered = filtered.filter(user => 
+            (user.nom && user.nom.toLowerCase().includes(searchLower)) ||
+            (user.email && user.email.toLowerCase().includes(searchLower))
+        );
+    }
+    
+    // Filtre rôle
+    if (currentFilters.role) {
+        filtered = filtered.filter(user => user.role === currentFilters.role);
+    }
+    
+    // Filtre statut
+    if (currentFilters.status) {
+        const isActive = currentFilters.status === 'actif';
+        filtered = filtered.filter(user => user.actif === isActive);
+    }
+    
+    displayUsers(filtered);
+}
+
+// Afficher les utilisateurs
+function displayUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+    
+    if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Aucun utilisateur trouvé<\/td></tr>';
         return;
     }
     
-    container.innerHTML = users.map(user => `
+    tbody.innerHTML = users.map(user => `
         <tr>
             <td>${user.id}</td>
-            <td>${escapeHtml(user.nom)}</td>
+            <td><strong>${escapeHtml(user.nom)}</strong></td>
             <td>${escapeHtml(user.email)}</td>
-            <td><span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-acheteur'}">${user.role}</span></td>
-            <td>${user.actif ? '✅ Actif' : '❌ Inactif'}</td>
-            <td>
-                <button onclick="editUser(${user.id})" class="btn-edit">✏️</button>
-                <button onclick="deleteUser(${user.id})" class="btn-delete">🗑️</button>
+            <td><span class="badge-${user.role === 'admin' ? 'admin' : 'acheteur'}">${user.role === 'admin' ? 'Admin' : 'Acheteur'}</span></td>
+            <td><span class="badge-${user.actif ? 'actif' : 'inactif'}">${user.actif ? 'Actif' : 'Inactif'}</span></td>
+            <td>${formatDate(user.date_creation)}</td>
+            <td class="actions">
+                <a href="#" onclick="viewUser(${user.id})" class="action-link" title="Voir">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="#" onclick="editUser(${user.id})" class="action-link" title="Modifier">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="#" onclick="toggleUserStatus(${user.id}, ${!user.actif})" class="action-link" title="${user.actif ? 'Désactiver' : 'Activer'}">
+                    <i class="fas ${user.actif ? 'fa-ban' : 'fa-check-circle'}"></i>
+                </a>
+                <a href="#" onclick="deleteUser(${user.id})" class="action-link action-delete" title="Supprimer">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
             </td>
-        </tr>
+        </table>
     `).join('');
 }
 
+// Filtrer par recherche (avec debounce)
+function onSearchInput() {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        currentFilters.search = document.getElementById('searchInput')?.value.trim() || '';
+        applyFiltersAndDisplay();
+    }, 300);
+}
+
+// Filtrer par rôle (instantané)
+function onRoleChange() {
+    currentFilters.role = document.getElementById('roleFilter')?.value || '';
+    applyFiltersAndDisplay();
+}
+
+// Filtrer par statut (instantané)
+function onStatusChange() {
+    currentFilters.status = document.getElementById('statusFilter')?.value || '';
+    applyFiltersAndDisplay();
+}
+
+// Réinitialiser tous les filtres
+function resetFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    if (searchInput) searchInput.value = '';
+    if (roleFilter) roleFilter.value = '';
+    if (statusFilter) statusFilter.value = '';
+    
+    currentFilters = { search: '', role: '', status: '' };
+    applyFiltersAndDisplay();
+}
+
+// Navigation
+function viewUser(id) {
+    window.location.href = `detail.html?id=${id}`;
+}
+
+function editUser(id) {
+    window.location.href = `form.html?id=${id}`;
+}
+
+function newUser() {
+    window.location.href = 'form.html';
+}
+
+// Activer/Désactiver un utilisateur
+async function toggleUserStatus(id, newStatus) {
+    const action = newStatus ? 'activer' : 'désactiver';
+    if (!confirm(`Êtes-vous sûr de vouloir ${action} cet utilisateur ?`)) return;
+    
+    const result = await UsersAPI.update(id, { actif: newStatus });
+    
+    if (result.ok) {
+        showNotification(`Utilisateur ${action} avec succès`, 'success');
+        loadUsers();
+    } else {
+        showNotification(`Erreur lors de la ${action}`, 'error');
+    }
+}
+
+// Supprimer un utilisateur
+async function deleteUser(id) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ? Cette action est irréversible.')) return;
+    
+    const result = await UsersAPI.delete(id);
+    
+    if (result.ok) {
+        showNotification('Utilisateur supprimé avec succès', 'success');
+        loadUsers();
+    } else {
+        const errorMsg = result.data?.detail || 'Erreur lors de la suppression';
+        showNotification(errorMsg, 'error');
+    }
+}
+
+// Notification
+function showNotification(message, type) {
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#2E7D32' : '#D32F2F'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        z-index: 10000;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+    notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${escapeHtml(message)}`;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
+}
+
+// Utilitaires
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR');
+}
+
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-async function deleteUser(id) {
-    const user = currentUsers.find(u => u.id === id);
-    if (!user) return;
+// Initialisation
+function initUsersList() {
+    console.log('Initialisation de la liste des utilisateurs');
+    loadUsers();
     
-    if (confirm(`Supprimer "${user.nom}" ?`)) {
-        const result = await UsersAPI.delete(id);
-        if (result.ok) {
-            await loadUsers();
-            alert('Utilisateur supprimé');
-        } else {
-            alert('Erreur: ' + (result.data?.detail || 'Suppression impossible'));
-        }
-    }
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const resetBtn = document.getElementById('resetFiltersBtn');
+    const newUserBtn = document.getElementById('newUserBtn');
+    
+    if (searchInput) searchInput.addEventListener('input', onSearchInput);
+    if (roleFilter) roleFilter.addEventListener('change', onRoleChange);
+    if (statusFilter) statusFilter.addEventListener('change', onStatusChange);
+    if (resetBtn) resetBtn.addEventListener('click', resetFilters);
+    if (newUserBtn) newUserBtn.addEventListener('click', newUser);
 }
 
-async function editUser(id) {
-    const user = currentUsers.find(u => u.id === id);
-    if (!user) return;
-    
-    document.getElementById('userId').value = user.id;
-    document.getElementById('userNom').value = user.nom;
-    document.getElementById('userEmail').value = user.email;
-    document.getElementById('userRole').value = user.role;
-    document.getElementById('userActif').checked = user.actif;
-    document.getElementById('userPassword').value = '';
-    
-    document.getElementById('userFormTitle').textContent = 'Modifier un utilisateur';
-    document.getElementById('userForm').style.display = 'block';
-}
-
-async function saveUser() {
-    const id = document.getElementById('userId').value;
-    const nom = document.getElementById('userNom').value;
-    const email = document.getElementById('userEmail').value;
-    const role = document.getElementById('userRole').value;
-    const actif = document.getElementById('userActif').checked;
-    const mot_de_passe = document.getElementById('userPassword').value;
-    
-    const userData = { nom, email, role, actif };
-    if (mot_de_passe) userData.mot_de_passe = mot_de_passe;
-    
-    let result;
-    if (id) {
-        result = await UsersAPI.update(id, userData);
-    } else {
-        if (!mot_de_passe) {
-            alert('Le mot de passe est requis pour un nouvel utilisateur');
-            return;
-        }
-        result = await UsersAPI.create(userData);
-    }
-    
-    if (result.ok) {
-        document.getElementById('userForm').style.display = 'none';
-        document.getElementById('userId').value = '';
-        document.getElementById('userPassword').value = '';
-        await loadUsers();
-        alert(id ? 'Utilisateur modifié' : 'Utilisateur créé');
-    } else {
-        alert('Erreur: ' + (result.data?.detail || 'Opération impossible'));
-    }
-}
-
-function showAddUserForm() {
-    document.getElementById('userId').value = '';
-    document.getElementById('userNom').value = '';
-    document.getElementById('userEmail').value = '';
-    document.getElementById('userRole').value = 'acheteur';
-    document.getElementById('userActif').checked = true;
-    document.getElementById('userPassword').value = '';
-    
-    document.getElementById('userFormTitle').textContent = 'Ajouter un utilisateur';
-    document.getElementById('userForm').style.display = 'block';
-}
-
-function cancelUserForm() {
-    document.getElementById('userForm').style.display = 'none';
-    document.getElementById('userId').value = '';
-    document.getElementById('userPassword').value = '';
-}
-
-// Charger les utilisateurs au chargement de la page
+// Attendre les composants
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('usersTableBody')) {
-        loadUsers();
-    }
+    const checkLoader = setInterval(() => {
+        if (document.getElementById('sidebar-container') && document.getElementById('top-header-container')) {
+            clearInterval(checkLoader);
+            setTimeout(initUsersList, 200);
+        }
+    }, 100);
+    
+    setTimeout(() => {
+        clearInterval(checkLoader);
+        initUsersList();
+    }, 3000);
 });
+
+// Exporter les fonctions globales
+window.viewUser = viewUser;
+window.editUser = editUser;
+window.deleteUser = deleteUser;
+window.toggleUserStatus = toggleUserStatus;
