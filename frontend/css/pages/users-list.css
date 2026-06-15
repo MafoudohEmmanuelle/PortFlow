@@ -1,0 +1,151 @@
+/* ============================================
+   USERS LIST - Styles spécifiques
+   ============================================ */
+
+/* Filtres */
+.filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: white;
+    padding: 16px 20px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    border: 1px solid #ECECEC;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #757575;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group label i {
+    margin-right: 4px;
+    color: #D32F2F;
+}
+
+.filter-group input,
+.filter-group select {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #E0E0E0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    outline: none;
+    border-color: #D32F2F;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-reset {
+    background: #F5F5F5;
+    border: 1px solid #E0E0E0;
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-reset:hover {
+    background: #E0E0E0;
+}
+
+/* Badges */
+.badge-admin {
+    background: #D32F2F;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-acheteur {
+    background: #1565C0;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-actif {
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-inactif {
+    background: #FFEBEE;
+    color: #D32F2F;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Actions */
+.action-link {
+    color: #D32F2F;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-decoration: none;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.action-link:hover {
+    text-decoration: underline;
+}
+
+.action-delete {
+    color: #757575;
+}
+
+.action-delete:hover {
+    color: #D32F2F;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-actions {
+        justify-content: flex-end;
+    }
+}

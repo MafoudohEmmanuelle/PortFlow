@@ -23,12 +23,13 @@ const DossiersAPI = {
     
     // Créer un dossier
     async create(data) {
+        console.log(' POST /dossiers - Données envoyées:', data);
         return apiClient.post('/dossiers', data);
     },
     
     // Modifier un dossier
     async update(id, data) {
-        console.log('Update dossier ID:', id, 'Data:', data);  // Pour déboguer
+        console.log(`PUT /dossiers/${id} - Données envoyées:`, data);
         return apiClient.put(`/dossiers/${id}`, data);
     },
     
@@ -39,16 +40,18 @@ const DossiersAPI = {
     
     // Enregistrer la date de départ
     async updateDepart(id, dateDepart) {
-        return apiClient.put(`/dossiers/${id}/depart?date_depart=${dateDepart}`);
+        return apiClient.put(`/dossiers/${id}/depart?date_depart=${dateDepart}`, {});
     },
     
     // Enregistrer la date d'arrivée
     async updateArrivee(id, dateArrivee) {
+        console.log(` PUT /dossiers/${id}/arrivee - Date:`, dateArrivee);
         return apiClient.put(`/dossiers/${id}/arrivee`, { date_arrivee: dateArrivee });
     },
     
     // Enregistrer la date de sortie
     async updateSortie(id, dateSortie) {
+        console.log(`PUT /dossiers/${id}/sortie - Date:`, dateSortie);
         return apiClient.put(`/dossiers/${id}/sortie`, { date_sortie_port: dateSortie });
     }
 };
