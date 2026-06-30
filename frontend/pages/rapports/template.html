@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rapport de clôture</title>
+<link rel="stylesheet" href="../../css/rapports-print.css">
+</head>
+<body>
+<div class="report">
+    <header>
+        <div class="logo">
+            PORTFLOW
+        </div>
+        <div class="title">
+            RAPPORT DE CLÔTURE DOSSIER IMPORTATION
+        </div>
+    </header>
+    <section>
+        <h2>1. Informations Générales</h2>
+        <table>
+            <tr>
+                <th>N° BL</th>
+                <td id="numero_bl"></td>
+            </tr>
+            <tr>
+                <th>Fournisseur</th>
+                <td id="fournisseur"></td>
+            </tr>
+            <tr>
+                <th>Armateur</th>
+                <td id="armateur"></td>
+            </tr>
+            <tr>
+                <th>Acheteur</th>
+                <td id="acheteur"></td>
+            </tr>
+            <tr>
+                <th>ETA Initiale</th>
+                <td id="eta"></td>
+            </tr>
+            <tr>
+                <th>Date Arrivée</th>
+                <td id="arrivee"></td>
+            </tr>
+            <tr>
+                <th>Date Sortie</th>
+                <td id="sortie"></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <h2>2. Suivi documentaire</h2>
+        <table id="documentsTable">
+            <thead>
+                <tr>
+                    <th>Document</th>
+                    <th>Responsable</th>
+                    <th>Date Réception</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </section>
+    <section>
+        <h2>3. Analyse des Surestaries</h2>
+        <div id="analyseContent">
+        </div>
+    </section>
+
+    <section>
+        <h2>4. Recommandations</h2>
+        <div id="recommandation">
+        </div>
+    </section>
+
+    <footer>
+        Rapport généré automatiquement par PORTFLOW
+        <br>
+        <span id="dateGeneration"></span>
+    </footer>
+</div>
+<script src="../../js/modules/rapports-template.js"></script>
+</body>
+</html>

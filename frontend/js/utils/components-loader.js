@@ -259,8 +259,9 @@ const ComponentsLoader = {
         if (path.includes('alertes/list.html')) return 'Alertes';
         
         // Rapports
-        if (path.includes('rapports/index.html')) return 'Rapports & KPIs';
-        
+        if (path.includes('rapports/index.html')) return 'Rapports';
+        if (path.includes('rapports/detail.html')) return 'Rapport';
+
         // Dashboards
         if (path.includes('dashboard-admin.html')) return 'Tableau de bord administrateur';
         

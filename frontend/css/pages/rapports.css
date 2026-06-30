@@ -1,0 +1,603 @@
+/* ============================================
+   RAPPORTS - Styles spécifiques
+   ============================================ */
+
+/* ========== INDEX ========== */
+.rapports-header {
+    margin-bottom: 24px;
+}
+
+.rapports-header h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #1E1E1E;
+}
+
+.rapports-header h2 i {
+    color: #D32F2F;
+    margin-right: 12px;
+}
+
+.rapports-header .subtitle {
+    color: #757575;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.badge-count {
+    background: #F5F5F5;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    color: #757575;
+}
+
+/* Filtres */
+.filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: white;
+    padding: 16px 20px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    border: 1px solid #ECECEC;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #757575;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group label i {
+    margin-right: 4px;
+    color: #D32F2F;
+}
+
+.filter-group input,
+.filter-group select {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #E0E0E0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    outline: none;
+    border-color: #D32F2F;
+}
+
+.filter-group small {
+    font-size: 0.7rem;
+    color: #757575;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-reset {
+    background: #F5F5F5;
+    border: 1px solid #E0E0E0;
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-reset:hover {
+    background: #E0E0E0;
+}
+
+/* Badges statut */
+.badge-sortie {
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-surestaries {
+    background: #FFEBEE;
+    color: #D32F2F;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Boutons d'action rapport */
+.btn-rapport {
+    background: #E3F2FD;
+    border: none;
+    color: #1565C0;
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 2px 4px;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-rapport:hover {
+    background: #1565C0;
+    color: white;
+}
+
+.btn-rapport-tracking {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.btn-rapport-tracking:hover {
+    background: #E65100;
+    color: white;
+}
+
+/* ========== DETAIL ========== */
+
+/* En-tête rapport */
+.rapport-header {
+    background: white;
+    border-radius: 24px;
+    padding: 24px 32px;
+    margin-bottom: 32px;
+    border: 1px solid #ECECEC;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.rapport-logo .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rapport-logo .logo-container i {
+    font-size: 2rem;
+    color: #D32F2F;
+}
+
+.rapport-logo .logo-container h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1E1E1E;
+    letter-spacing: -0.5px;
+}
+
+.rapport-slogan {
+    font-size: 0.7rem;
+    color: #757575;
+    margin-top: 4px;
+    padding-left: 56px;
+}
+
+.rapport-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.meta-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    color: #757575;
+    letter-spacing: 0.5px;
+}
+
+.meta-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1E1E1E;
+}
+
+.meta-value .badge-sortie,
+.meta-value .badge-surestaries {
+    font-size: 0.7rem;
+    padding: 2px 10px;
+}
+
+/* Corps du rapport */
+.rapport-body {
+    background: white;
+    border-radius: 24px;
+    padding: 24px 32px;
+    border: 1px solid #ECECEC;
+    margin-bottom: 24px;
+}
+
+.rapport-section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.rapport-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.rapport-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1E1E1E;
+    margin-bottom: 16px;
+}
+
+.rapport-section h3 i {
+    color: #D32F2F;
+    margin-right: 10px;
+}
+
+/* Informations générales */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-item label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: #757575;
+    letter-spacing: 0.5px;
+}
+
+.info-item span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #1E1E1E;
+    background: #F5F5F5;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+/* Statistiques documents */
+.document-stats {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.stat-doc {
+    background: #F5F5F5;
+    padding: 12px 20px;
+    border-radius: 16px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.stat-doc.success {
+    background: #E8F5E9;
+}
+
+.stat-doc.danger {
+    background: #FFEBEE;
+}
+
+.stat-doc-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1E1E1E;
+}
+
+.stat-doc.success .stat-doc-value {
+    color: #2E7D32;
+}
+
+.stat-doc.danger .stat-doc-value {
+    color: #D32F2F;
+}
+
+.stat-doc-label {
+    font-size: 0.7rem;
+    color: #757575;
+}
+
+/* Documents list */
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.doc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: #FAFAFA;
+    border-radius: 12px;
+    border-left: 4px solid #D32F2F;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.doc-item.received {
+    border-left-color: #2E7D32;
+}
+
+.doc-item .doc-name {
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.doc-item .doc-status {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.doc-item .doc-status.received {
+    color: #2E7D32;
+}
+
+.doc-item .doc-status.missing {
+    color: #D32F2F;
+}
+
+.doc-item .doc-date {
+    font-size: 0.7rem;
+    color: #757575;
+}
+
+/* Analyse surestarie */
+.analyse-item {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.analyse-item:last-child {
+    border-bottom: none;
+}
+
+.analyse-label {
+    width: 150px;
+    font-weight: 500;
+    color: #757575;
+    font-size: 0.85rem;
+}
+
+.analyse-value {
+    flex: 1;
+    font-weight: 500;
+    color: #1E1E1E;
+    font-size: 0.85rem;
+}
+
+/* Tracking timeline */
+.tracking-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tracking-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 16px;
+    background: #FAFAFA;
+    border-radius: 12px;
+    flex-wrap: wrap;
+}
+
+.tracking-item .tracking-date {
+    font-size: 0.75rem;
+    color: #757575;
+    min-width: 160px;
+}
+
+.tracking-item .tracking-position {
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.tracking-item .tracking-position i {
+    color: #D32F2F;
+    margin-right: 6px;
+}
+
+/* Pied de page */
+.rapport-footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #757575;
+    padding: 16px;
+    border-top: 1px solid #ECECEC;
+}
+
+/* Actions d'export */
+.rapport-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    text-align: center;
+    padding: 60px;
+    color: #757575;
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    display: block;
+    color: #D32F2F;
+}
+
+/* States */
+.loading {
+    text-align: center;
+    padding: 30px;
+    color: #757575;
+}
+
+.loading i {
+    margin-right: 8px;
+}
+
+.empty {
+    text-align: center;
+    padding: 30px;
+    color: #757575;
+    font-style: italic;
+}
+
+.error {
+    text-align: center;
+    padding: 30px;
+    color: #D32F2F;
+}
+
+/* Back button */
+.back-button-wrapper {
+    margin-bottom: 20px;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #F5F5F5;
+    border: 1px solid #E0E0E0;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: #1E1E1E;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-back:hover {
+    background: #E0E0E0;
+    border-color: #D32F2F;
+    color: #D32F2F;
+}
+
+.btn-back i {
+    font-size: 0.85rem;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 800px) {
+    .rapport-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .rapport-meta {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    .meta-item {
+        align-items: flex-start;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .document-stats {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .analyse-item {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .analyse-label {
+        width: 100%;
+    }
+    
+    .rapport-actions {
+        flex-direction: column;
+    }
+    
+    .rapport-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-actions {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tracking-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tracking-item .tracking-date {
+        min-width: auto;
+    }
+    
+    .rapport-meta {
+        flex-wrap: wrap;
+    }
+    
+    .doc-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

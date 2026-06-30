@@ -22,7 +22,7 @@ def parse_cors_origins(origins_str: str) -> list:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500"],
+    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500","http://localhost:8080", "http://n8n:5678"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # ← AJOUTER PUT et DELETE allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +51,9 @@ app.include_router(dossier_importation_router, prefix=settings.API_V1_PREFIX)
 
 from .modules.tracking.api import router as tracking_router
 app.include_router(tracking_router, prefix=settings.API_V1_PREFIX)
+
+from .modules.reporting.api import router as rapport_router
+app.include_router(rapport_router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 async def root():

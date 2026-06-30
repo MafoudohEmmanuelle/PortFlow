@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PortFlow | Rapport</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/top-header.css">
+    <link rel="stylesheet" href="../../css/pages/rapports.css">
+</head>
+<body>
+    <div id="page-content">
+        <!-- Bouton retour -->
+        <div class="back-button-wrapper">
+            <button type="button" class="btn-back" onclick="window.location.href='index.html'">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i> Génération du rapport...
+        </div>
+
+        <!-- Contenu du rapport -->
+        <div id="rapportContent" style="display: none;">
+            <!-- En-tête du rapport avec logo -->
+            <div class="rapport-header" id="rapportHeader">
+                <div class="rapport-logo">
+                    <div class="logo-container">
+                        <i class="fas fa-ship"></i>
+                        <h1>PORTFLOW</h1>
+                    </div>
+                    <p class="rapport-slogan">Monitor • Prévention surestaries</p>
+                </div>
+                <div class="rapport-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">N° Rapport</span>
+                        <span class="meta-value" id="rapportNumero">-</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Date de génération</span>
+                        <span class="meta-value" id="rapportDate">-</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Statut</span>
+                        <span class="meta-value" id="rapportStatut">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corps du rapport -->
+            <div class="rapport-body">
+                <!-- 1. Informations générales -->
+                <div class="rapport-section">
+                    <h3><i class="fas fa-info-circle"></i> Informations générales</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>N° BL</label>
+                            <span id="rapportNumBl">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Fournisseur</label>
+                            <span id="rapportFournisseur">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Armateur</label>
+                            <span id="rapportArmateur">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Acheteur</label>
+                            <span id="rapportAcheteur">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>ETA initiale</label>
+                            <span id="rapportEta">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Date arrivée</label>
+                            <span id="rapportArrivee">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Date sortie</label>
+                            <span id="rapportSortie">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Délai franchise</label>
+                            <span id="rapportDelai">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Jours au port</label>
+                            <span id="rapportJoursPort">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Documents -->
+                <div class="rapport-section">
+                    <h3><i class="fas fa-file-alt"></i> Suivi documentaire</h3>
+                    <div class="document-stats">
+                        <div class="stat-doc">
+                            <span class="stat-doc-value" id="docTotal">0</span>
+                            <span class="stat-doc-label">Total</span>
+                        </div>
+                        <div class="stat-doc success">
+                            <span class="stat-doc-value" id="docObtenus">0</span>
+                            <span class="stat-doc-label">Reçus</span>
+                        </div>
+                        <div class="stat-doc danger">
+                            <span class="stat-doc-value" id="docManquants">0</span>
+                            <span class="stat-doc-label">Manquants</span>
+                        </div>
+                    </div>
+                    <div class="documents-list" id="rapportDocuments">
+                        <div class="loading">Chargement des documents...</div>
+                    </div>
+                </div>
+
+                <!-- 3. Analyse (si surestarie) -->
+                <div class="rapport-section" id="analyseSection" style="display: none;">
+                    <h3><i class="fas fa-chart-bar"></i> Analyse des surestaries</h3>
+                    <div id="analyseContent">
+                        <div class="analyse-item">
+                            <span class="analyse-label">Cause principale</span>
+                            <span class="analyse-value" id="analyseCause">-</span>
+                        </div>
+                        <div class="analyse-item">
+                            <span class="analyse-label">Jours de surestarie</span>
+                            <span class="analyse-value" id="analyseJours">-</span>
+                        </div>
+                        <div class="analyse-item">
+                            <span class="analyse-label">Détail</span>
+                            <span class="analyse-value" id="analyseDetail">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Tracking (si rapport tracking) -->
+                <div class="rapport-section" id="trackingSection" style="display: none;">
+                    <h3><i class="fas fa-ship"></i> Tracking maritime</h3>
+                    <div class="tracking-timeline" id="rapportTracking">
+                        <div class="loading">Chargement du tracking...</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Actions d'export -->
+            <div class="rapport-actions">
+                <button class="btn-red" id="exportPdfBtn">
+                    <i class="fas fa-file-pdf"></i> Exporter en PDF
+                </button>
+                <button class="btn-outline-grey" id="exportExcelBtn">
+                    <i class="fas fa-file-excel"></i> Exporter en Excel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/dossiers.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/api/users.js"></script>
+    <script src="../../js/api/rapports.js"></script>
+    <script src="../../js/components/sidebar.js"></script>
+    <script src="../../js/components/top-header.js"></script>
+    <script src="../../js/utils/components-loader.js"></script>
+    <script src="../../js/modules/rapports.js"></script>
+    
+    <script>
+        if (!Auth.isAuthenticated()) {
+            window.location.href = '../login.html';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAdmin = Auth.isAdmin();
+            const role = isAdmin ? 'admin' : 'acheteur';
+            
+            if (typeof ComponentsLoader !== 'undefined') {
+                await ComponentsLoader.init(role);
+                ComponentsLoader.setActiveSidebarItem('rapports');
+                ComponentsLoader.setPageTitle('Rapport');
+            }
+        });
+    </script>
+</body>
+</html>

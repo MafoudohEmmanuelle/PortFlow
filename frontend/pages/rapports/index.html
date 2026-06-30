@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PortFlow | Rapports</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/top-header.css">
+    <link rel="stylesheet" href="../../css/pages/rapports.css">
+</head>
+<body>
+    <div id="page-content">
+        <!-- En-tête -->
+        <div class="rapports-header">
+            <h2><i class="fas fa-file-alt"></i> Rapports de clôture</h2>
+            <p class="subtitle">Dossiers clôturés avec rapports disponibles</p>
+        </div>
+
+        <!-- Filtres -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label><i class="fas fa-search"></i> Recherche</label>
+                <input type="text" id="searchInput" placeholder="N° BL, fournisseur..." autocomplete="off">
+                <small>La recherche est automatique</small>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-filter"></i> Statut</label>
+                <select id="filterStatut">
+                    <option value="">Tous</option>
+                    <option value="sortie">Sorti</option>
+                    <option value="sortie_surestaries">Sorti - Surestaries</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="btn-reset" id="btnReset">
+                    <i class="fas fa-undo-alt"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
+
+        <!-- Liste des dossiers clôturés -->
+        <div class="card-panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-folder-open"></i> Dossiers clôturés</span>
+                <span class="badge-count" id="dossiersCount">0 dossier(s)</span>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>N° BL</th>
+                            <th>Fournisseur</th>
+                            <th>Armateur</th>
+                            <th>Acheteur</th>
+                            <th>Date clôture</th>
+                            <th>Statut</th>
+                            <th>Rapports</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dossiersTableBody">
+                        <tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...<\/td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/config.js"></script>
+    <script src="../../js/utils/storage.js"></script>
+    <script src="../../js/utils/auth.js"></script>
+    <script src="../../js/api/client.js"></script>
+    <script src="../../js/api/dossiers.js"></script>
+    <script src="../../js/api/referentiels.js"></script>
+    <script src="../../js/api/users.js"></script>
+    <script src="../../js/api/rapports.js"></script>
+    <script src="../../js/components/sidebar.js"></script>
+    <script src="../../js/components/top-header.js"></script>
+    <script src="../../js/utils/components-loader.js"></script>
+    <script src="../../js/modules/rapports.js"></script>
+    
+    <script>
+        if (!Auth.isAuthenticated()) {
+            window.location.href = '../login.html';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAdmin = Auth.isAdmin();
+            const role = isAdmin ? 'admin' : 'acheteur';
+            
+            if (typeof ComponentsLoader !== 'undefined') {
+                await ComponentsLoader.init(role);
+                ComponentsLoader.setActiveSidebarItem('rapports');
+                ComponentsLoader.setPageTitle('Rapports');
+            }
+        });
+    </script>
+</body>
+</html>
