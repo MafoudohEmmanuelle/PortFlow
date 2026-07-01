@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
+from .modules.alertes.scheduler import scheduler
+import threading
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -49,12 +51,15 @@ app.include_router(dossier_document_router, prefix=settings.API_V1_PREFIX)
 from .modules.dossiers.api import router as dossier_importation_router
 app.include_router(dossier_importation_router, prefix=settings.API_V1_PREFIX) 
 
+<<<<<<< HEAD
 from .modules.tracking.api import router as tracking_router
 app.include_router(tracking_router, prefix=settings.API_V1_PREFIX)
 
 from .modules.reporting.api import router as rapport_router
 app.include_router(rapport_router, prefix=settings.API_V1_PREFIX)
 
+=======
+>>>>>>> 4d60069bb13dd00bc274aa82dde67f44515288ae
 @app.get("/")
 async def root():
     return {"message": "Bienvenue sur l'API PortFlow", "status": "running"}
@@ -62,3 +67,29 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Démarre le scheduler au lancement de l'application"""
+    # Démarrer le scheduler dans un thread séparé (pas bloquant pour l'API)
+    import threading
+    threading.Thread(target=scheduler.start, daemon=True).start()
+    print("✅ Scheduler des alertes démarré")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Arrête le scheduler à l'arrêt de l'application"""
+    scheduler.stop()
+    print("🛑 Scheduler des alertes arrêté")
+
+# backend/app/main.py
+from app.modules.dossiers.scheduler import dossier_scheduler
+
+@app.on_event("startup")
+async def startup_event():
+    # Scheduler des alertes (déjà existant)
+    threading.Thread(target=scheduler.start, daemon=True).start()
+    
+    # Scheduler des statuts (NOUVEAU)
+    threading.Thread(target=dossier_scheduler.start, daemon=True).start()

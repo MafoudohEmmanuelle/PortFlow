@@ -318,6 +318,7 @@ class DossierImportationService():
         
         return dossier
 
+<<<<<<< HEAD
     def delete_dossier(
         self,
         dossier_id: int,
@@ -687,3 +688,37 @@ class DossierImportationService():
                 }
             }
         }
+=======
+def delete_dossier(
+    self, 
+    dossier_id: int, 
+    current_user: Utilisateur
+) -> dict:
+    """Supprime un dossier et toutes ses associations (admin uniquement)"""
+    
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seuls les administrateurs peuvent supprimer des dossiers"
+        )
+    
+    # Vérifier que le dossier existe
+    dossier = self._check_dossier_exists(dossier_id)
+    
+    #  1. Supprimer les associations dossier-document
+    from app.modules.documents.models import DocumentDossier
+    
+    deleted_associations = self.db.query(DocumentDossier).filter(
+        DocumentDossier.dossier_id == dossier_id
+    ).delete()
+    
+    # 2. Supprimer le dossier
+    self.db.delete(dossier)
+    self.db.commit()
+    
+    return {
+        "message": f"Dossier {dossier_id} supprimé avec succès",
+        "associations_supprimees": deleted_associations
+    }
+        
+>>>>>>> 4d60069bb13dd00bc274aa82dde67f44515288ae
