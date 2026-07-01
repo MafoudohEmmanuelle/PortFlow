@@ -71,28 +71,28 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
-
-@app.on_event("startup")
-async def startup_event():
-    """Démarre le scheduler au lancement de l'application"""
-    # Démarrer le scheduler dans un thread séparé (pas bloquant pour l'API)
-    import threading
-    threading.Thread(target=scheduler.start, daemon=True).start()
-    print("Scheduler des alertes démarré")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Arrête le scheduler à l'arrêt de l'application"""
-    scheduler.stop()
-    print("Scheduler des alertes arrêté")
-
 # backend/app/main.py
 from app.modules.dossiers.scheduler import dossier_scheduler
 
 @app.on_event("startup")
 async def startup_event():
-    # Scheduler des alertes (déjà existant)
-    threading.Thread(target=scheduler.start, daemon=True).start()
+
+    threading.Thread(
+        target=scheduler.start,
+        daemon=True
+    ).start()
+
+    threading.Thread(
+        target=dossier_scheduler.start,
+        daemon=True
+    ).start()
+
+    print("Schedulers démarrés")
     
-    # Scheduler des statuts (NOUVEAU)
-    threading.Thread(target=dossier_scheduler.start, daemon=True).start()
+@app.on_event("shutdown")
+async def shutdown_event():
+
+    scheduler.stop()
+    dossier_scheduler.stop()
+
+    print("Schedulers arrêtés")
