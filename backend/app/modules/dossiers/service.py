@@ -318,7 +318,6 @@ class DossierImportationService():
         
         return dossier
 
-<<<<<<< HEAD
     def delete_dossier(
         self,
         dossier_id: int,
@@ -688,7 +687,6 @@ class DossierImportationService():
                 }
             }
         }
-=======
 def delete_dossier(
     self, 
     dossier_id: int, 
@@ -720,5 +718,3 @@ def delete_dossier(
         "message": f"Dossier {dossier_id} supprimé avec succès",
         "associations_supprimees": deleted_associations
     }
-        
->>>>>>> 4d60069bb13dd00bc274aa82dde67f44515288ae

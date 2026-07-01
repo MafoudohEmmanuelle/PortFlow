@@ -51,15 +51,12 @@ app.include_router(dossier_document_router, prefix=settings.API_V1_PREFIX)
 from .modules.dossiers.api import router as dossier_importation_router
 app.include_router(dossier_importation_router, prefix=settings.API_V1_PREFIX) 
 
-<<<<<<< HEAD
 from .modules.tracking.api import router as tracking_router
 app.include_router(tracking_router, prefix=settings.API_V1_PREFIX)
 
 from .modules.reporting.api import router as rapport_router
 app.include_router(rapport_router, prefix=settings.API_V1_PREFIX)
 
-=======
->>>>>>> 4d60069bb13dd00bc274aa82dde67f44515288ae
 @app.get("/")
 async def root():
     return {"message": "Bienvenue sur l'API PortFlow", "status": "running"}
@@ -75,13 +72,13 @@ async def startup_event():
     # Démarrer le scheduler dans un thread séparé (pas bloquant pour l'API)
     import threading
     threading.Thread(target=scheduler.start, daemon=True).start()
-    print("✅ Scheduler des alertes démarré")
+    print("Scheduler des alertes démarré")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Arrête le scheduler à l'arrêt de l'application"""
     scheduler.stop()
-    print("🛑 Scheduler des alertes arrêté")
+    print("Scheduler des alertes arrêté")
 
 # backend/app/main.py
 from app.modules.dossiers.scheduler import dossier_scheduler

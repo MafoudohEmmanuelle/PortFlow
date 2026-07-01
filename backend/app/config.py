@@ -17,6 +17,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     APP_NAME: str = "PortFlow"
     API_V1_PREFIX: str = "/api/v1"
+
+    # SMTP (Notifications email)
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "PortFlow <noreply@portflow.com>"
     
     class Config:
         env_file = ".env"
