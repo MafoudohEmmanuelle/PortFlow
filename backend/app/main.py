@@ -24,9 +24,15 @@ def parse_cors_origins(origins_str: str) -> list:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500","http://localhost:8080", "http://n8n:5678"],
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:5500",
+        "http://127.0.0.1",
+        "http://127.0.0.1:5500",
+        "http://192.168.0.119"
+    ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # ← AJOUTER PUT et DELETE allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], 
     allow_headers=["*"],
 )
 

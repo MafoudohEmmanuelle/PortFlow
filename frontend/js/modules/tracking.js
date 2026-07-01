@@ -50,9 +50,6 @@ async function loadTrackingHistory(dossierId) {
             tableBody.innerHTML = `
                 <tr><td colspan="6" class="tracking-empty">
                     <i class="fas fa-map-marker-alt"></i> Aucun relevé de tracking
-                    <button class="btn-outline-grey" style="margin-left: 10px;" onclick="openTrackingForm()">
-                        <i class="fas fa-plus"></i> Ajouter un relevé
-                    </button>
                 <\/td></tr>
             `;
             const paginationContainer = document.getElementById('trackingPagination');

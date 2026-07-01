@@ -84,7 +84,7 @@
                         <div class="step-icon"><i class="fas fa-ship"></i></div>
                         <div class="step-label">Départ</div>
                         <div class="step-date" id="departDate">Non renseigné</div>
-                        <button class="step-btn btn-outline-grey" data-action="depart">
+                        <button class="step-btn btn-outline-grey" onclick="updateDepart()">
                             <i class="fas fa-pen"></i> Marquer
                         </button>
                     </div>
@@ -97,7 +97,7 @@
                         <div class="step-label">Arrivée au port</div>
                         <div class="step-date" id="arriveeDate">Non renseigné</div>
                         <div class="step-warning" id="arriveeWarning"></div>
-                        <button class="step-btn btn-outline-grey" data-action="arrivee">
+                       <button class="step-btn btn-outline-grey" onclick="updateArrivee()">
                             <i class="fas fa-pen"></i> Marquer
                         </button>
                     </div>
@@ -110,7 +110,7 @@
                         <div class="step-label">Sortie du port</div>
                         <div class="step-date" id="sortieDate">Non renseigné</div>
                         <div class="step-warning" id="sortieWarning"></div>
-                        <button class="step-btn btn-outline-grey" data-action="sortie">
+                        <button class="step-btn btn-outline-grey" onclick="updateSortie()">
                             <i class="fas fa-pen"></i> Marquer
                         </button>
                     </div>
@@ -144,6 +144,9 @@
             <div class="card-panel">
                 <div class="panel-header">
                     <span class="panel-title"><i class="fas fa-ship"></i> Tracking maritime</span>
+                    <a id="armateurTrackingLink" href="#" target="_blank" class="btn-outline" style="display: none;">
+                        <i class="fas fa-external-link-alt"></i> Suivre sur le site de l'armateur
+                    </a>
                     <button class="btn-red" id="addTrackingBtn">
                         <i class="fas fa-plus"></i> Ajouter un relevé
                     </button>
@@ -161,7 +164,7 @@
                             </tr>
                         </thead>
                         <tbody id="trackingTableBody">
-                            <tr><td colspan="6" class="tracking-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...<\/td></tr>
+                            <tr><td colspan="6" class="tracking-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -180,25 +183,7 @@
                 </div>
             </div>
 
-            <!-- ========== MODAL POUR LA SAISIE DES DATES (Départ, Arrivée, Sortie) ========== -->
-            <div id="dateModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 id="modalTitle">Saisir la date</h3>
-                        <button class="modal-close" id="closeModalBtn">&times;</button>
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="modalDate" class="form-control">
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn-cancel" id="cancelModalBtn">Annuler</button>
-                        <button class="btn-save" id="modalConfirmBtn">Confirmer</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========== MODAL POUR LE FORMULAIRE DE TRACKING ========== -->
+            <!-- Modal pour le formulaire de tracking (inchangé) -->
             <div id="trackingModal" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -232,34 +217,178 @@
         </div>
     </div>
 
+
+
+
+
+
+<!-- Modal pour la saisie de date (départ, arrivée, sortie) -->
+<div id="dateModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Saisir la date</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="form-group">
+            <label for="modalDate">Date</label>
+            <input type="date" id="modalDate" class="form-control">
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" id="cancelModalBtn">Annuler</button>
+            <button type="button" class="btn-save" id="modalConfirmBtn">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
     
     <!-- Scripts -->
-    <script src="../../js/config.js"></script>
-    <script src="../../js/utils/storage.js"></script>
-    <script src="../../js/utils/auth.js"></script>
-    <script src="../../js/api/client.js"></script>
-    <script src="../../js/api/dossiers.js"></script>
-    <script src="../../js/api/referentiels.js"></script>
-    <script src="../../js/api/suivi-documents.js"></script>
-    <script src="../../js/api/tracking.js"></script>
-    <script src="../../js/components/sidebar.js"></script>
-    <script src="../../js/components/top-header.js"></script>
-    <script src="../../js/utils/components-loader.js"></script>
-    <script src="../../js/modules/dossiers/dossier-detail.js"></script>
-    <script src="../../js/modules/tracking.js"></script>
+<!-- 1. Configurations -->
+<script src="../../js/config.js"></script>
+<script src="../../js/utils/storage.js"></script>
+<script src="../../js/utils/auth.js"></script>
+
+<!-- 2. API -->
+<script src="../../js/api/client.js"></script>
+<script src="../../js/api/dossiers.js"></script>
+<script src="../../js/api/referentiels.js"></script>
+<script src="../../js/api/suivi-documents.js"></script>
+<script src="../../js/api/tracking.js"></script>
+
+<!-- 3. Composants -->
+<script src="../../js/components/sidebar.js"></script>
+<script src="../../js/components/top-header.js"></script>
+<script src="../../js/utils/components-loader.js"></script>
+
+<!-- 4. Modules -->
+<script src="../../js/modules/dossiers/dossier-detail.js"></script>
+<script src="../../js/modules/tracking.js"></script>   <!-- ← DERNIER -->
     <script>
         if (!Auth.isAuthenticated()) {
             window.location.href = '../login.html';
         }
-        
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const isAdmin = Auth.isAdmin();
-            const role = isAdmin ? 'admin' : 'acheteur';
+        const isAdmin = Auth.isAdmin();
+        const role = isAdmin ? 'admin' : 'acheteur';
+        
+        if (typeof ComponentsLoader !== 'undefined') {
+            await ComponentsLoader.init(role);
+            ComponentsLoader.setActiveSidebarItem('dossiers');
+            ComponentsLoader.setPageTitle('Détail du dossier');
+        }
+    });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔴 Script manuel pour les boutons tracking');
             
-            if (typeof ComponentsLoader !== 'undefined') {
-                await ComponentsLoader.init(role);
-                ComponentsLoader.setActiveSidebarItem('dossiers');
-                ComponentsLoader.setPageTitle('Détail du dossier');
+            // Récupérer les éléments
+            const addBtn = document.getElementById('addTrackingBtn');
+            const modal = document.getElementById('trackingModal');
+            const closeBtn = document.getElementById('closeTrackingModalBtn');
+            const cancelBtn = document.getElementById('cancelTrackingBtn');
+            const submitBtn = document.getElementById('trackingSubmitBtn');
+            
+            console.log('addBtn:', addBtn);
+            console.log('modal:', modal);
+            console.log('closeBtn:', closeBtn);
+            console.log('cancelBtn:', cancelBtn);
+            console.log('submitBtn:', submitBtn);
+            
+            // Ouvrir le modal
+            if (addBtn && modal) {
+                addBtn.onclick = function() {
+                    console.log('🟢 Ouverture du modal tracking');
+                    modal.style.display = 'flex';
+                    modal.classList.add('active');
+                    // Réinitialiser les champs
+                    document.getElementById('trackingPosition').value = '';
+                    document.getElementById('trackingEtd').value = '';
+                    document.getElementById('trackingEta').value = '';
+                };
+            }
+            
+            // Fermer avec la croix
+            if (closeBtn && modal) {
+                closeBtn.onclick = function() {
+                    modal.style.display = 'none';
+                    modal.classList.remove('active');
+                };
+            }
+            
+            // Fermer avec Annuler
+            if (cancelBtn && modal) {
+                cancelBtn.onclick = function() {
+                    modal.style.display = 'none';
+                    modal.classList.remove('active');
+                };
+            }
+            
+            // Fermer en cliquant à l'extérieur
+            if (modal) {
+                modal.onclick = function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        modal.classList.remove('active');
+                    }
+                };
+            }
+            
+            // Soumettre le formulaire
+            if (submitBtn) {
+                submitBtn.onclick = async function() {
+                    console.log('🟢 Soumission du formulaire tracking');
+                    
+                    const position = document.getElementById('trackingPosition').value.trim();
+                    const etd = document.getElementById('trackingEtd').value;
+                    const eta = document.getElementById('trackingEta').value;
+                    
+                    if (!position) {
+                        alert('Veuillez saisir une position');
+                        return;
+                    }
+                    
+                    if (typeof currentDossierId === 'undefined' || !currentDossierId) {
+                        alert('Aucun dossier chargé');
+                        return;
+                    }
+                    
+                    const data = {
+                        dossier_id: currentDossierId,
+                        position: position,
+                        etd: etd || null,
+                        eta: eta || null
+                    };
+                    
+                    try {
+                        const result = await TrackingAPI.create(data);
+                        console.log('Résultat:', result);
+                        
+                        if (result.ok) {
+                            alert('Relevé enregistré avec succès !');
+                            modal.style.display = 'none';
+                            modal.classList.remove('active');
+                            
+                            // Recharger l'historique
+                            if (typeof window.loadTrackingHistory === 'function') {
+                                await window.loadTrackingHistory(currentDossierId);
+                            } else {
+                                window.location.reload();
+                            }
+                        } else {
+                            alert('Erreur: ' + (result.data?.detail || 'Erreur'));
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        alert('Erreur de connexion');
+                    }
+                };
             }
         });
     </script>

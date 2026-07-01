@@ -125,7 +125,7 @@ const ComponentsLoader = {
                 { view: 'dashboard', label: 'Tableau de bord', icon: 'fa-tachometer-alt', url: prefix + 'dashboard-acheteur.html' },
                 { view: 'dossiers', label: 'Dossiers import', icon: 'fa-folder-open', url: prefix + 'dossiers/list.html' },
                 { view: 'nouveau', label: 'Nouveau dossier', icon: 'fa-plus-circle', url: prefix + 'dossiers/form.html' },
-                { view: 'alertes', label: 'Alertes', icon: 'fa-bell', url: prefix + 'alertes/list.html' },
+                { view: 'alertes', label: 'Alertes', icon: 'fa-bell', url: prefix + 'alertes.html' },
                 { view: 'rapports', label: 'Rapports', icon: 'fa-chart-line', url: prefix + 'rapports/index.html' }
             ];
         } else {
@@ -134,8 +134,10 @@ const ComponentsLoader = {
                 { view: 'dashboard', label: 'Tableau de bord', icon: 'fa-tachometer-alt', url: prefix + 'dashboard-admin.html' },
                 { view: 'utilisateurs', label: 'Utilisateurs', icon: 'fa-users', url: prefix + 'users/list.html' },
                 { view: 'dossiers', label: 'Dossiers', icon: 'fa-folder-open', url: prefix + 'dossiers/list.html' },
+                { view: 'nouveau', label: 'Nouveau dossier', icon: 'fa-plus-circle', url: prefix + 'dossiers/form.html' },
                 { view: 'armateurs', label: 'Armateurs', icon: 'fa-ship', url: prefix + 'armateurs/list.html' },
                 { view: 'documents', label: 'Documents', icon: 'fa-file-alt', url: prefix + 'documents/list.html' },
+                { view: 'alertes', label: 'Alertes', icon: 'fa-bell', url: prefix + 'alertes.html' },
                 { view: 'rapports', label: 'Rapports', icon: 'fa-chart-line', url: prefix + 'rapports/index.html' }
             ];
         }
@@ -256,12 +258,11 @@ const ComponentsLoader = {
         if (path.includes('users/list.html')) return 'Utilisateurs';
         
         // Alertes
-        if (path.includes('alertes/list.html')) return 'Alertes';
+        if (path.includes('alertes.html')) return 'Alertes';
         
         // Rapports
-        if (path.includes('rapports/index.html')) return 'Rapports';
-        if (path.includes('rapports/detail.html')) return 'Rapport';
-
+        if (path.includes('rapports/index.html')) return 'Rapports & KPIs';
+        
         // Dashboards
         if (path.includes('dashboard-admin.html')) return 'Tableau de bord administrateur';
         

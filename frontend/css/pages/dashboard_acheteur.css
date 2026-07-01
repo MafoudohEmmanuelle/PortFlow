@@ -183,3 +183,42 @@
         margin-left: 0;
     }
 }
+
+
+
+
+
+
+
+
+
+
+.stat-value.critique {
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.stat-value.warning {
+    color: #f59e0b;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.stat-value.normal {
+    color: #10b981;
+    font-size: 1rem;
+}
+
+.stat-value.safe {
+    color: #10b981;
+    font-size: 1.1rem;
+}
+
+.stat-value {
+    transition: all 0.3s;
+}
+
+.stat-value:hover {
+    transform: scale(1.05);
+}

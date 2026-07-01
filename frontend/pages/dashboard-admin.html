@@ -101,9 +101,6 @@
             <div class="card-panel">
                 <div class="panel-header">
                     <span class="panel-title"><i class="fas fa-bell"></i> Dernières alertes critiques</span>
-                    <button class="btn-red" id="voirToutesAlertes">
-                        <i class="fas fa-list"></i> Voir toutes
-                    </button>
                 </div>
                 <div class="table-wrapper">
                     <table class="data-table">
@@ -117,7 +114,7 @@
                             </tr>
                         </thead>
                         <tbody id="recentAlertsBody">
-                            <tr><td colspan="5" class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...<\/td></tr>
+                            <tr><td colspan="5" class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -130,6 +127,7 @@
     <script src="../js/utils/storage.js"></script>
     <script src="../js/utils/auth.js"></script>
     <script src="../js/api/client.js"></script>
+    <script src="../js/api/alertes.js"></script>
     <script src="../js/components/sidebar.js"></script>
     <script src="../js/components/top-header.js"></script>
     <script src="../js/utils/components-loader.js"></script>
