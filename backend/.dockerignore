@@ -1,0 +1,60 @@
+# backend/.dockerignore
+# ============================================================
+# FICHIERS À EXCLURE DE L'IMAGE DOCKER BACKEND
+# ============================================================
+
+# Fichiers d'environnement (ne pas inclure .env dans l'image)
+.env
+.env.*
+!.env.example
+
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Environnements virtuels
+venv/
+.venv/
+env/
+ENV/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Documentation
+README.md
+docs/
+
+# Autres
+*.db
+*.sqlite
+.DS_Store

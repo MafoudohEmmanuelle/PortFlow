@@ -1,0 +1,35 @@
+# ============================================================
+# FICHIERS À EXCLURE DE L'IMAGE DOCKER FRONTEND
+# ============================================================
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Fichiers inutiles
+*.log
+.DS_Store
+
+# Documentation
+README.md
+docs/
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Assets sources (garder seulement les fichiers compilés)
+assets/src/
+*.psd
+*.ai
+*.sketch
+
+# Tests
+tests/
+*.test.js
+*.spec.js

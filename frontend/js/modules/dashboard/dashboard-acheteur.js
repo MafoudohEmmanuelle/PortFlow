@@ -44,8 +44,10 @@ async function loadAcheteurStats() {
         
         if (result.ok && result.data) {
             const kpis = result.data.kpis;
+            console.log('KPIS reçus:', kpis);
+            console.log('dossier_risque:', kpis.dossier_risque);
             
-            // Mettre à jour les cartes KPIs
+            // ========== 1. METTRE À JOUR LES CARTES KPIS ==========
             const dossiersActifs = document.getElementById('dossiersActifs');
             const alertesNonLues = document.getElementById('alertesNonLues');
             const documentsManquants = document.getElementById('documentsManquants');
@@ -54,25 +56,51 @@ async function loadAcheteurStats() {
             if (dossiersActifs) dossiersActifs.textContent = kpis.dossiers_actifs || 0;
             if (documentsManquants) documentsManquants.textContent = kpis.documents_manquants || 0;
             
-            // Alertes
-            const alertesCount = result.data.mes_alertes?.length || 0;
-            if (alertesNonLues) {
-                alertesNonLues.textContent = alertesCount;
-                if (alertesCount > 0) alertesNonLues.classList.add('stat-critical');
-            }
-            
-            // Prochaine échéance
+            // ========== 2. PROCHAINE ÉCHÉANCE AVEC DOSSIER À RISQUE ==========
             if (prochaineEcheance) {
-                const jours = kpis.prochaine_echeance_jours;
-                if (jours !== null && jours !== undefined) {
-                    prochaineEcheance.textContent = `${jours}j`;
-                    if (jours <= 2) prochaineEcheance.classList.add('urgent');
+                const dossierRisque = kpis.dossier_risque;
+                console.log('Affichage du dossier risque:', dossierRisque);
+                
+                if (dossierRisque) {
+                    const jours = dossierRisque.jours_restants;
+                    const numBl = dossierRisque.numero_bl || 'N° inconnu';
+                    const fournisseur = dossierRisque.fournisseur || '';
+                    
+                    let text = '';
+                    let className = 'stat-value';
+                    
+                    if (dossierRisque.est_depasse) {
+                        text = `⚠️ DÉPASSÉ (${Math.abs(jours)}j) - ${numBl}`;
+                        className += ' critique';
+                        prochaineEcheance.title = `Dossier ${numBl} - ${fournisseur} - Délai dépassé !`;
+                    } else if (dossierRisque.est_critique) {
+                        text = `🔴 ${jours}j - ${numBl}`;
+                        className += ' warning';
+                        prochaineEcheance.title = `Dossier ${numBl} - ${fournisseur} - Attention : ${jours} jours restants`;
+                    } else {
+                        text = `${jours}j - ${numBl}`;
+                        className += ' normal';
+                        prochaineEcheance.title = `Dossier ${numBl} - ${fournisseur} - ${jours} jours restants`;
+                    }
+                    
+                    prochaineEcheance.textContent = text;
+                    prochaineEcheance.className = className;
+                    prochaineEcheance.style.cursor = 'pointer';
+                    
+                    // Cliquer sur l'échéance redirige vers le dossier à risque
+                    prochaineEcheance.onclick = function() {
+                        window.location.href = `dossiers/detail.html?id=${dossierRisque.id}`;
+                    };
                 } else {
-                    prochaineEcheance.textContent = 'N/A';
+                    prochaineEcheance.textContent = '✅ Aucun risque';
+                    prochaineEcheance.className = 'stat-value safe';
+                    prochaineEcheance.style.cursor = 'default';
+                    prochaineEcheance.onclick = null;
+                    prochaineEcheance.title = '';
                 }
             }
             
-            // Barre de progression
+            // ========== 3. BARRE DE PROGRESSION ==========
             const completion = result.data.completion;
             if (completion) {
                 updateCompletionBar(completion.pourcentage || 0);
@@ -82,7 +110,7 @@ async function loadAcheteurStats() {
                 }
             }
             
-            // Afficher les alertes (quand le module sera prêt)
+            // ========== 4. AFFICHER LES ALERTES ==========
             if (result.data.mes_alertes && result.data.mes_alertes.length > 0) {
                 displayAlertsList(result.data.mes_alertes);
             }
@@ -154,8 +182,8 @@ async function loadRecentDossiers() {
                         <a href="#" onclick="goToDossierDetail(${dossier.id})" class="action-link">
                             <i class="fas fa-eye"></i> Voir
                         </a>
-                      ‰d
-                 <tr>
+                    </td>
+                </tr>
             `).join('');
         } else {
             tbody.innerHTML = '<tr><td colspan="6" class="empty">Aucun dossier trouvé</td></tr>';
@@ -187,7 +215,7 @@ async function loadDocumentsList() {
                             '<span class="badge-success"><i class="fas fa-check"></i> Reçu</span>' : 
                             '<span class="badge-warning"><i class="fas fa-clock"></i> En attente</span>'
                         }
-                      ‰d
+                    </td>
                     <td>${doc.date_reception ? formatDate(doc.date_reception) : '-'}</td>
                     <td class="action-cell">
                         ${!doc.obtenu ? 
@@ -196,8 +224,8 @@ async function loadDocumentsList() {
                             </a>` : 
                             `<span class="text-muted">-</span>`
                         }
-                      ‰d
-                 </tr>
+                    </td>
+                </tr>
             `).join('');
         } else {
             tbody.innerHTML = '<tr><td colspan="5" class="empty">Aucun document trouvé</td></tr>';
@@ -236,12 +264,140 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Initialisation
-function loadDashboardData() {
+// ========== CHARGEMENT DES DONNÉES DU DASHBOARD ==========
+
+async function loadDashboardData() {
     console.log('loadDashboardData - Début');
-    loadAcheteurStats();
-    loadRecentDossiers();
-    loadDocumentsList();
+    
+    // Charger les statistiques
+    await loadAcheteurStats();
+    
+    // Charger les dossiers récents
+    await loadRecentDossiers();
+    
+    // Charger les documents
+    await loadDocumentsList();
+    
+    // Charger les alertes
+    await loadAlertesDashboard();
+    
+    // Mettre à jour le badge d'alertes
+    await updateAlertBadge();
+}
+
+// ========== ALERTES DASHBOARD ==========
+
+// Mettre à jour le badge d'alertes (compteur non lues)
+// async function updateAlertBadge() {
+//     try {
+//         // Récupérer UNIQUEMENT les alertes non lues
+//         const result = await AlertesAPI.getAll(false, 0, 100);
+//         console.log('Alertes non lues (dashboard):', result);
+        
+//         if (result.ok && result.data) {
+//             const alertes = result.data.alertes || [];
+//             const count = alertes.length;
+            
+//             const badge = document.getElementById('alertesNonLues');
+//             if (badge) {
+//                 badge.textContent = count;
+//                 if (count > 0) {
+//                     badge.classList.add('stat-critical');
+//                 } else {
+//                     badge.classList.remove('stat-critical');
+//                 }
+//             }
+//         }
+//     } catch (error) {
+//         console.error('Erreur mise à jour badge:', error);
+//     }
+// }
+
+// Mettre à jour le badge d'alertes (version simplifiée)
+async function updateAlertBadge() {
+    try {
+        // Exactement le même appel que dans alertes.html
+        const result = await AlertesAPI.getAll(false, 0, 100);
+        console.log('Alertes non lues (dashboard):', result);
+        
+        if (result.ok && result.data) {
+            // Compter les alertes de la même manière
+            const alertes = result.data.alertes || [];
+            const count = alertes.length;
+            console.log('Nombre d\'alertes non lues:', count);
+            
+            const badge = document.getElementById('alertesNonLues');
+            if (badge) {
+                badge.textContent = count;
+                if (count > 0) {
+                    badge.classList.add('stat-critical');
+                } else {
+                    badge.classList.remove('stat-critical');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erreur mise à jour badge:', error);
+    }
+}
+
+async function loadAlertesDashboard() {
+    const container = document.getElementById('alertsList');
+    if (!container) return;
+    
+    try {
+        // Récupérer les 5 dernières alertes NON LUES
+        const result = await AlertesAPI.getAll(false, 0, 5);
+        console.log('Alertes dashboard:', result);
+        
+        if (result.ok && result.data) {
+            const alertes = result.data.alertes || [];
+            displayAlertesDashboard(alertes, container);
+        } else {
+            container.innerHTML = '<div class="empty-alerts"><i class="fas fa-check-circle"></i> Aucune alerte non lue</div>';
+        }
+    } catch (error) {
+        console.error('Erreur chargement alertes:', error);
+        container.innerHTML = '<div class="error-alerts">Erreur de chargement</div>';
+    }
+}
+
+function displayAlertesDashboard(alertes, container) {
+    if (!alertes || alertes.length === 0) {
+        container.innerHTML = '<div class="empty-alerts"><i class="fas fa-check-circle"></i> Aucune alerte non lue</div>';
+        return;
+    }
+    
+    container.innerHTML = alertes.map(alerte => {
+        const niveau = alerte.niveau || 'info';
+        const niveauClass = niveau === 'critique' ? 'alert-critical' : 
+                           niveau === 'warning' ? 'alert-warning' : 'alert-info';
+        
+        return `
+            <div class="alert-item ${niveauClass}">
+                <div class="alert-content">
+                    <span class="alert-badge ${niveau}">${getNiveauLabel(niveau)}</span>
+                    <span class="alert-message">${escapeHtml(alerte.message)}</span>
+                    <span class="alert-date">${formatDate(alerte.date_alerte)}</span>
+                    ${alerte.dossier_id ? `
+                        <a href="dossiers/detail.html?id=${alerte.dossier_id}" class="alert-link">
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Fonctions utilitaires pour le dashboard
+function getNiveauLabel(niveau) {
+    const labels = {
+        'critique': '🚨 Critique',
+        'warning': '⚠️ Attention',
+        'info': 'ℹ️ Information'
+    };
+    return labels[niveau] || niveau;
 }
 
 // ========== NAVIGATION DEPUIS LE HTML ==========

@@ -1,15 +1,22 @@
 # backend/app/modules/dashboard/api.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from ...database import get_db
-from ...core.dependencies import get_current_admin, get_current_user
-from ...modules.auth.models import Utilisateur, UserRole
-from ...modules.users.service import UserService
+from sqlalchemy import func
+from datetime import datetime, timedelta, timezone
+from typing import List, Dict, Any
+
+from app.database import get_db
+from app.core.dependencies import get_current_user, get_current_admin
+from app.modules.auth.models import Utilisateur
+from app.modules.dossiers.models import DossierImportation
+from app.modules.dossiers.enum import StatutDossier
+from app.modules.documents.models import DossierDocument
+from ...modules.alertes.models import Alerte
+
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 # ========== DASHBOARD ADMINISTRATEUR ==========
-
 
 @router.get("/admin/stats")
 def get_admin_stats(
@@ -72,10 +79,6 @@ def get_admin_stats(
     ]
     
     # ========== 4. DERNIÈRES ALERTES ==========
-    # Version simplifiée sans calcul de dates problématique
-    dernieres_alertes = []
-    
-    # Récupérer les dossiers avec documents manquants
     dossiers_manquants = db.query(
         DossierImportation.id,
         DossierImportation.numero_bl,
@@ -89,6 +92,7 @@ def get_admin_stats(
         DossierImportation.date_creation.desc()
     ).limit(5).all()
     
+    dernieres_alertes = []
     for d in dossiers_manquants:
         missing_count = db.query(DossierDocument).filter(
             DossierDocument.dossier_id == d.id,
@@ -115,69 +119,6 @@ def get_admin_stats(
         "dernieres_alertes": dernieres_alertes
     }
 
-    # ========== 5. DERNIÈRES ALERTES ==========
-    # ═══════════════════════════════════════════════════════════════════════════
-    # TODO: À remplacer par le module alerte quand il sera prêt
-    # Actuellement: basé sur les documents manquants (solution temporaire)
-    # À remplacer par: db.query(Alerte).filter(...).order_by(...).limit(5).all()
-    # ═══════════════════════════════════════════════════════════════════════════
-    
-    # TEMPORAIRE - À SUPPRIMER QUAND LE MODULE ALERTE SERA PRÊT
-    dossiers_avec_manquants = db.query(
-        DossierImportation.id,
-        DossierImportation.numero_bl,
-        DossierImportation.fournisseur,
-        DossierImportation.date_arrivee,
-        DossierImportation.delai_franchise_jours,
-        DossierImportation.date_creation
-    ).join(
-        DossierDocument, DossierImportation.id == DossierDocument.dossier_id
-    ).filter(
-        DossierDocument.obtenu == False
-    ).distinct().order_by(
-        DossierImportation.date_creation.desc()
-    ).limit(5).all()
-    
-    dernieres_alertes = []
-    for d in dossiers_avec_manquants:
-        missing_count = db.query(DossierDocument).filter(
-            DossierDocument.dossier_id == d.id,
-            DossierDocument.obtenu == False
-        ).count()
-        
-        est_critique = False
-        if d.date_arrivee:
-            fin_delai = d.date_arrivee + timedelta(days=d.delai_franchise_jours)
-            if (fin_delai - now).days <= 2:
-                est_critique = True
-        
-        dernieres_alertes.append({
-            "dossier_id": d.id,
-            "dossier_numero_bl": d.numero_bl,
-            "fournisseur": d.fournisseur,
-            "message": f"{missing_count} document(s) manquant(s)",
-            "critique": est_critique,
-            "date": d.date_creation.isoformat() if d.date_creation else now.isoformat()
-        })
-    
-    # ═══════════════════════════════════════════════════════════════════════════
-    # FIN DE LA SECTION TEMPORAIRE
-    # ═══════════════════════════════════════════════════════════════════════════
-    
-    return {
-        "kpis": {
-            "total_users": total_users,
-            "dossiers_actifs": dossiers_actifs,
-            "dossiers_surestarie": dossiers_surestarie,
-            "taux_surestaries": taux_surestaries,
-            "documents_manquants": documents_manquants
-        },
-        "evolution_surestaries": evolution,
-        "repartition_statuts": repartition_statuts,
-        "top_armateurs_retards": top_armateurs_list,
-        "dernieres_alertes": dernieres_alertes  # À remplacer par vraies alertes
-    }
-
 
 # ========== DASHBOARD ACHETEUR ==========
 
@@ -188,7 +129,8 @@ def get_acheteur_stats(
 ):
     """Statistiques pour l'acheteur connecté"""
     
-    now = datetime.now(timezone.utc)
+    # Convertir en date pour les calculs (et non datetime)
+    aujourdhui = datetime.now(timezone.utc).date()
     user_id = current_user.id
     
     # ========== 1. KPIS ==========
@@ -205,13 +147,16 @@ def get_acheteur_stats(
     ).filter(
         DossierImportation.utilisateur_id == user_id,
         DossierDocument.obtenu == False
-    ).count()
-    
-    # Prochaine échéance (franchise la plus proche)
+    ).count()   
+
+    # ========== PROCHAINE ÉCHÉANCE AVEC DOSSIER À RISQUE ==========
     dossiers_avec_date = db.query(
         DossierImportation.id,
+        DossierImportation.numero_bl,
+        DossierImportation.fournisseur,
         DossierImportation.date_arrivee,
-        DossierImportation.delai_franchise_jours
+        DossierImportation.delai_franchise_jours,
+        DossierImportation.statut
     ).filter(
         DossierImportation.utilisateur_id == user_id,
         DossierImportation.date_arrivee.isnot(None),
@@ -219,14 +164,29 @@ def get_acheteur_stats(
     ).all()
     
     prochaine_echeance = None
+    dossier_risque = None
+    
+    print(f"Dossiers trouvés pour l'utilisateur {user_id}: {len(dossiers_avec_date)}")
+    
     for d in dossiers_avec_date:
         if d.date_arrivee:
             fin_delai = d.date_arrivee + timedelta(days=d.delai_franchise_jours)
-            jours_restants = (fin_delai - now).days
-            if jours_restants >= 0:
-                if prochaine_echeance is None or jours_restants < prochaine_echeance:
-                    prochaine_echeance = jours_restants
-    
+            jours_restants = (fin_delai - aujourdhui).days
+            
+            print(f"   Dossier {d.numero_bl}: fin_delai={fin_delai}, jours_restants={jours_restants}")
+            
+            # Sélectionner le dossier avec le moins de jours restants
+            if prochaine_echeance is None or jours_restants < prochaine_echeance:
+                prochaine_echeance = jours_restants
+                dossier_risque = {
+                    "id": d.id,
+                    "numero_bl": d.numero_bl,
+                    "fournisseur": d.fournisseur,
+                    "jours_restants": jours_restants,
+                    "statut": d.statut,
+                    "est_critique": jours_restants <= 3,
+                    "est_depasse": jours_restants < 0
+                }
     # ========== 2. TAUX DE COMPLÉTION ==========
     total_documents = db.query(DossierDocument).join(
         DossierImportation, DossierDocument.dossier_id == DossierImportation.id
@@ -252,24 +212,23 @@ def get_acheteur_stats(
     ).filter(
         DossierImportation.utilisateur_id == user_id
     ).group_by(DossierImportation.statut).all()
-    
-    # ========== 4. MES ALERTES ==========
-    # ═══════════════════════════════════════════════════════════════════════════
-    # TODO: À remplacer par le module alerte quand il sera prêt
-    # Actuellement: pas d'alertes (solution temporaire)
-    # À remplacer par: db.query(Alerte).filter(utilisateur_id == user_id).all()
-    # ═══════════════════════════════════════════════════════════════════════════
-    
-    # TEMPORAIRE - À SUPPRIMER QUAND LE MODULE ALERTE SERA PRÊT
-    # Pour l'instant, on ne retourne pas d'alertes dans le dashboard acheteur
-    mes_alertes = []  # Liste vide en attendant le module alerte
-    
-    # ═══════════════════════════════════════════════════════════════════════════
-    # FIN DE LA SECTION TEMPORAIRE
-    # ═══════════════════════════════════════════════════════════════════════════
+
+     # Afficher le résultat dans les logs
+    print(f" dossier_risque: {dossier_risque}")
     
     return {
-        "bienvenue": f"Bonjour {current_user.nom}",
-        "role": current_user.role.value,
-        "email": current_user.email
+        "kpis": {
+            "dossiers_actifs": dossiers_actifs,
+            "documents_manquants": mes_documents_manquants,
+            "prochaine_echeance_jours": prochaine_echeance,
+            "dossier_risque": dossier_risque  # ← Cette ligne DOIT être présente
+        },
+        "completion": {
+            "total": total_documents,
+            "obtenus": documents_obtenus,
+            "pourcentage": completion_pourcentage
+        },
+        "mes_statuts": [
+            {"statut": s.statut, "count": s.count} for s in mes_statuts
+        ]
     }

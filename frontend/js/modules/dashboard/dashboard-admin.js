@@ -172,26 +172,114 @@ async function loadRecentUsers() {
 }
 
 // Afficher les alertes
-function displayRecentAlerts(alertes) {
-    const tbody = document.getElementById('recentAlertsBody');
-    if (!tbody) return;
+// frontend/js/modules/dashboard/dashboard-admin.js
+
+// ========== CHARGEMENT DES ALERTES ==========
+
+async function loadRecentAlerts() {
+    const container = document.getElementById('recentAlertsBody');
+    if (!container) return;
     
-    const alertesList = alertes.slice(0, 5);
-    
-    if (alertesList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">Aucune alerte</td></tr>';
+     // Vérifier que AlertesAPI est défini
+    if (typeof AlertesAPI === 'undefined') {
+        console.warn('AlertesAPI non chargé, réessai dans 500ms');
+        setTimeout(() => loadRecentAlerts(), 500);
+        return;
+    }
+
+    try {
+        const result = await AlertesAPI.getAll(false, 0, 5); // 5 dernières alertes non lues
+        
+        if (result.ok && result.data) {
+            const alertes = result.data.alertes || [];
+            displayRecentAlerts(alertes, container);
+        } else {
+            container.innerHTML = '<tr><td colspan="5" class="empty">Aucune alerte critique</td></tr>';
+        }
+    } catch (error) {
+        console.error('Erreur chargement alertes:', error);
+        container.innerHTML = '<tr><td colspan="5" class="error">Erreur de chargement</td></tr>';
+    }
+}
+
+function displayRecentAlerts(alertes, container) {
+    if (!alertes || alertes.length === 0) {
+        container.innerHTML = '<tr><td colspan="5" class="empty"><i class="fas fa-check-circle"></i> Aucune alerte critique</td></tr>';
         return;
     }
     
-    tbody.innerHTML = alertesList.map(alert => `
-        <tr class="${alert.critique ? 'critical-alert' : ''}">
-            <td><strong>${escapeHtml(alert.dossier_numero_bl)}</strong></td>
-            <td>${escapeHtml(alert.message)}</td>
-            <td>${alert.critique ? '<span class="badge-critical">⚠️ Critique</span>' : '<span class="badge-neutral">Info</span>'}</td>
-            <td class="alert-date">${formatDate(alert.date)}</td>
-            <td><a href="dossiers/detail.html?id=${alert.dossier_id}" class="action-link">Voir</a></td>
-        </tr>
-    `).join('');
+    container.innerHTML = alertes.map(alerte => {
+        const niveau = alerte.niveau || 'info';
+        const niveauBadge = niveau === 'critique' ? 'badge-critical' : 
+                           niveau === 'warning' ? 'badge-warning' : 'badge-info';
+        
+        return `
+            <tr>
+                <td>
+                    <a href="dossiers/detail.html?id=${alerte.dossier_id}" class="link">
+                        Dossier #${alerte.dossier_id}
+                    </a>
+                </td>
+                <td>${escapeHtml(alerte.message)}</td>
+                <td><span class="badge ${niveauBadge}">${niveau.toUpperCase()}</span></td>
+                <td>${formatDate(alerte.date_alerte)}</td>
+                <td>
+                    <a href="dossiers/detail.html?id=${alerte.dossier_id}" class="btn-sm">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Mettre à jour les statistiques des alertes dans les KPIs
+// async function updateAlertsStats() {
+//     try {
+//         const stats = await AlertesAPI.getStats();
+//         if (stats.ok && stats.data) {
+//             const count = stats.data.non_lues || 0;
+//             const alertesCritiques = document.getElementById('alertesCritiques');
+//             if (alertesCritiques) {
+//                 alertesCritiques.textContent = count;
+//                 if (count > 0) {
+//                     alertesCritiques.classList.add('stat-critical');
+//                 }
+//             }
+//         }
+//     } catch (error) {
+//         console.error('Erreur mise à jour stats alertes:', error);
+//     }
+// }
+
+// Mettre à jour les statistiques des alertes dans les KPIs
+async function updateAlertsStats() {
+    try {
+        // Utiliser getAll() pour compter les alertes réelles (comme dans alertes.html)
+        const result = await AlertesAPI.getAll(false, 0, 100);
+        console.log('Alertes non lues (admin):', result);
+        
+        if (result.ok && result.data) {
+            // Récupérer le nombre d'alertes non lues
+            const alertes = result.data.alertes || [];
+            const count = alertes.length;
+            
+            // Ou utiliser le total retourné par l'API
+            // const count = result.data.non_lues || 0;
+            
+            const alertesCritiques = document.getElementById('alertesCritiques');
+            if (alertesCritiques) {
+                alertesCritiques.textContent = count;
+                if (count > 0) {
+                    alertesCritiques.classList.add('stat-critical');
+                } else {
+                    alertesCritiques.classList.remove('stat-critical');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erreur mise à jour stats alertes:', error);
+    }
 }
 
 function formatStatutLabel(statut) {
@@ -220,10 +308,29 @@ function escapeHtml(text) {
 }
 
 // Initialisation
+// async function initDashboard() {
+//     console.log('Initialisation du dashboard admin');
+//     await loadAdminStats();
+//     await loadRecentUsers();
+    
+//     const voirUtilisateursBtn = document.getElementById('voirTousUtilisateurs');
+//     if (voirUtilisateursBtn) {
+//         voirUtilisateursBtn.addEventListener('click', goToUsersList);
+//     }
+    
+//     const voirAlertesBtn = document.getElementById('voirToutesAlertes');
+//     if (voirAlertesBtn) {
+//         voirAlertesBtn.addEventListener('click', goToAlertesList);
+//     }
+// }
+
+// Initialisation
 async function initDashboard() {
     console.log('Initialisation du dashboard admin');
     await loadAdminStats();
     await loadRecentUsers();
+    await loadRecentAlerts();        // ← AJOUTER
+    await updateAlertsStats();       // ← AJOUTER
     
     const voirUtilisateursBtn = document.getElementById('voirTousUtilisateurs');
     if (voirUtilisateursBtn) {
