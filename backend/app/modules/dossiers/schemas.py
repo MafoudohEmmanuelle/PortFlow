@@ -62,3 +62,12 @@ class DossierResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class AutoReceptionPayload(BaseModel):
+    nom_document: str
+    numero_bl: Optional[str] = None
+    adresse_destinataire: Optional[str] = None
+    mail_expediteur: str
+    mail_date_reception: str
+    numero_conteneur: Optional[str] = None

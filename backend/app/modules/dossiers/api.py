@@ -261,3 +261,33 @@ def delete_dossier(
     dossier_service = service.DossierImportationService(db)
     dossier_service.delete_dossier(dossier_id, current_user)
     return None
+
+@router.post("/auto-reception", status_code=status.HTTP_201_CREATED)
+def auto_reception_document(
+    payload: schemas.AutoReceptionPayload,
+    db: Session = Depends(get_db)
+    # Pas de get_current_user ici car n8n n'a pas de token
+):
+    """
+    Endpoint pour la réception automatique des documents depuis n8n.
+    N'utilise pas l'authentification standard car n8n ne gère pas les tokens JWT.
+    """
+    doc_service = service.DossierDocumentService(db)
+    
+    try:
+        result = doc_service.auto_reception_document(
+            nom_document=payload.nom_document,
+            numero_bl=payload.numero_bl,
+            adresse_destinataire=payload.adresse_destinataire,
+            mail_expediteur=payload.mail_expediteur,
+            mail_date_reception=payload.mail_date_reception,
+            numero_conteneur=payload.numero_conteneur
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors du traitement: {str(e)}"
+        )

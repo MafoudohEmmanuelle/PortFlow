@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
+from .modules.alertes.scheduler import scheduler
+import threading
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -22,7 +24,7 @@ def parse_cors_origins(origins_str: str) -> list:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500"],
+    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500","http://localhost:8080", "http://n8n:5678"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # ← AJOUTER PUT et DELETE allow_methods=["*"],
     allow_headers=["*"],
@@ -52,6 +54,9 @@ app.include_router(dossier_importation_router, prefix=settings.API_V1_PREFIX)
 from .modules.tracking.api import router as tracking_router
 app.include_router(tracking_router, prefix=settings.API_V1_PREFIX)
 
+from .modules.reporting.api import router as rapport_router
+app.include_router(rapport_router, prefix=settings.API_V1_PREFIX)
+
 @app.get("/")
 async def root():
     return {"message": "Bienvenue sur l'API PortFlow", "status": "running"}
@@ -59,3 +64,29 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Démarre le scheduler au lancement de l'application"""
+    # Démarrer le scheduler dans un thread séparé (pas bloquant pour l'API)
+    import threading
+    threading.Thread(target=scheduler.start, daemon=True).start()
+    print("Scheduler des alertes démarré")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Arrête le scheduler à l'arrêt de l'application"""
+    scheduler.stop()
+    print("Scheduler des alertes arrêté")
+
+# backend/app/main.py
+from app.modules.dossiers.scheduler import dossier_scheduler
+
+@app.on_event("startup")
+async def startup_event():
+    # Scheduler des alertes (déjà existant)
+    threading.Thread(target=scheduler.start, daemon=True).start()
+    
+    # Scheduler des statuts (NOUVEAU)
+    threading.Thread(target=dossier_scheduler.start, daemon=True).start()

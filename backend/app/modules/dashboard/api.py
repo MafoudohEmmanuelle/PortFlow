@@ -1,16 +1,10 @@
 # backend/app/modules/dashboard/api.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-from datetime import datetime, timedelta, timezone
-from typing import List, Dict, Any
-
-from app.database import get_db
-from app.core.dependencies import get_current_user, get_current_admin
-from app.modules.auth.models import Utilisateur
-from app.modules.dossiers.models import DossierImportation
-from app.modules.dossiers.enum import StatutDossier
-from app.modules.documents.models import DossierDocument
+from ...database import get_db
+from ...core.dependencies import get_current_admin, get_current_user
+from ...modules.auth.models import Utilisateur, UserRole
+from ...modules.users.service import UserService
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -275,50 +269,7 @@ def get_acheteur_stats(
     # ═══════════════════════════════════════════════════════════════════════════
     
     return {
-        "kpis": {
-            "dossiers_actifs": dossiers_actifs,
-            "documents_manquants": mes_documents_manquants,
-            "prochaine_echeance_jours": prochaine_echeance
-        },
-        "completion": {
-            "total": total_documents,
-            "obtenus": documents_obtenus,
-            "pourcentage": completion_pourcentage
-        },
-        "mes_statuts": [
-            {"statut": s.statut, "count": s.count} for s in mes_statuts
-        ],
-        "mes_alertes": mes_alertes  # À remplacer par vraies alertes
+        "bienvenue": f"Bonjour {current_user.nom}",
+        "role": current_user.role.value,
+        "email": current_user.email
     }
-
-
-# =============================================================================
-# ENDPOINTS À AJOUTER QUAND LE MODULE ALERTE SERA PRÊT
-# =============================================================================
-# 
-# @router.get("/admin/alertes")
-# def get_admin_alertes(
-#     db: Session = Depends(get_db),
-#     current_admin: Utilisateur = Depends(get_current_admin)
-# ):
-#     """Récupère toutes les alertes système (admin)"""
-#     from app.modules.alertes.models import Alerte
-#     alertes = db.query(Alerte).filter(
-#         Alerte.est_lue == False
-#     ).order_by(Alerte.date_creation.desc()).limit(20).all()
-#     return alertes
-#
-# @router.get("/acheteur/alertes")
-# def get_acheteur_alertes(
-#     db: Session = Depends(get_db),
-#     current_user: Utilisateur = Depends(get_current_user)
-# ):
-#     """Récupère les alertes de l'acheteur connecté"""
-#     from app.modules.alertes.models import Alerte
-#     alertes = db.query(Alerte).filter(
-#         Alerte.utilisateur_id == current_user.id,
-#         Alerte.est_lue == False
-#     ).order_by(Alerte.date_creation.desc()).limit(10).all()
-#     return alertes
-#
-# =============================================================================

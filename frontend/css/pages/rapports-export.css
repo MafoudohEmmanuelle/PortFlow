@@ -1,0 +1,300 @@
+/* ============================================
+   RAPPORTS - Template pour export PDF
+   Structure professionnelle pour l'impression
+   ============================================ */
+
+/* ========== STYLES GÉNÉRAUX POUR L'EXPORT ========== */
+.rapport-export {
+    font-family: 'Inter', 'Arial', sans-serif;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px;
+    color: #1E1E1E;
+    background: white;
+}
+
+/* ========== EN-TÊTE ========== */
+.rapport-export .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #D32F2F;
+    margin-bottom: 32px;
+}
+
+.rapport-export .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.rapport-export .header-left .logo {
+    font-size: 2.5rem;
+    color: #D32F2F;
+}
+
+.rapport-export .header-left .company-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1E1E1E;
+    letter-spacing: -0.5px;
+}
+
+.rapport-export .header-left .company-subtitle {
+    font-size: 0.7rem;
+    color: #757575;
+    margin-top: 2px;
+}
+
+.rapport-export .header-right {
+    text-align: right;
+}
+
+.rapport-export .header-right .doc-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #D32F2F;
+}
+
+.rapport-export .header-right .doc-number {
+    font-size: 0.85rem;
+    color: #757575;
+}
+
+.rapport-export .header-right .doc-date {
+    font-size: 0.8rem;
+    color: #757575;
+}
+
+/* ========== STATUT BADGE ========== */
+.rapport-export .status-badge {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.rapport-export .status-badge.cloture {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.rapport-export .status-badge.surestaries {
+    background: #FFEBEE;
+    color: #D32F2F;
+}
+
+/* ========== SECTIONS ========== */
+.rapport-export .section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.rapport-export .section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.rapport-export .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1E1E1E;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rapport-export .section-title i {
+    color: #D32F2F;
+}
+
+/* ========== INFORMATIONS GÉNÉRALES ========== */
+.rapport-export .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 32px;
+}
+
+.rapport-export .info-item {
+    display: flex;
+    padding: 6px 0;
+    border-bottom: 1px solid #F5F5F5;
+}
+
+.rapport-export .info-item .label {
+    width: 140px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #757575;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rapport-export .info-item .value {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #1E1E1E;
+}
+
+/* ========== DOCUMENTS ========== */
+.rapport-export .doc-stats {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.rapport-export .doc-stat {
+    background: #F5F5F5;
+    padding: 8px 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.rapport-export .doc-stat .number {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.rapport-export .doc-stat .label {
+    font-size: 0.65rem;
+    color: #757575;
+    display: block;
+}
+
+.rapport-export .doc-stat.success .number {
+    color: #2E7D32;
+}
+
+.rapport-export .doc-stat.danger .number {
+    color: #D32F2F;
+}
+
+.rapport-export .doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rapport-export .doc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #FAFAFA;
+    border-radius: 8px;
+    border-left: 3px solid #D32F2F;
+}
+
+.rapport-export .doc-item.received {
+    border-left-color: #2E7D32;
+}
+
+.rapport-export .doc-item .name {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.rapport-export .doc-item .status {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.rapport-export .doc-item .status.received {
+    color: #2E7D32;
+}
+
+.rapport-export .doc-item .status.missing {
+    color: #D32F2F;
+}
+
+.rapport-export .doc-item .date {
+    font-size: 0.7rem;
+    color: #757575;
+}
+
+/* ========== ANALYSE SURESTARIE ========== */
+.rapport-export .analyse-item {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.rapport-export .analyse-item .label {
+    width: 160px;
+    font-weight: 600;
+    color: #757575;
+    font-size: 0.85rem;
+}
+
+.rapport-export .analyse-item .value {
+    flex: 1;
+    font-weight: 500;
+    color: #1E1E1E;
+    font-size: 0.85rem;
+}
+
+/* ========== TRACKING ========== */
+.rapport-export .tracking-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 12px;
+    background: #FAFAFA;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.rapport-export .tracking-item .date {
+    font-size: 0.75rem;
+    color: #757575;
+    min-width: 150px;
+}
+
+.rapport-export .tracking-item .position {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.rapport-export .tracking-item .position i {
+    color: #D32F2F;
+    margin-right: 6px;
+}
+
+/* ========== PIED DE PAGE ========== */
+.rapport-export .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ECECEC;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #757575;
+}
+
+/* ========== STYLES POUR L'IMPRESSION ========== */
+@media print {
+    .rapport-export {
+        padding: 20px;
+        margin: 0;
+    }
+    
+    .rapport-export .header {
+        border-bottom-color: #333;
+    }
+    
+    .rapport-export .section {
+        page-break-inside: avoid;
+    }
+    
+    .rapport-export .doc-item {
+        background: #f9f9f9;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+}
